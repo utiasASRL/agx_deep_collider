@@ -1,3 +1,0 @@
-[submodule "onboard_deep_sogm"]
-	path = eloquent_ws
-	url = https://github.com/utiasASRL/onboard_deep_sogm
