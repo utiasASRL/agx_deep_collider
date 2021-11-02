@@ -1,0 +1,12 @@
+
+
+/results
+
+**/build/**
+
+# Byte-compiled / optimized / DLL files
+*.py[cod]
+**/__pycache__
+
+# C extensions
+*.so
