@@ -1,0 +1,3 @@
+[submodule "onboard_deep_sogm"]
+	path = onboard_deep_sogm
+	url = https://github.com/utiasASRL/onboard_deep_sogm
