@@ -168,11 +168,11 @@ COPY ros_entrypoint.sh /ros_entrypoint.sh
 # Additional packages
 #
 RUN apt-get install ros-eloquent-costmap-converter-msgs -y --no-install-recommends
-RUN apt-get install ros-eloquent-ros1-bridge -y --no-install-recommends
 RUN apt-get install nano -y --no-install-recommends
 RUN pip3 install --upgrade scikit-learn
 RUN pip3 install --upgrade imageio
 
+# RUN apt-get install ros-eloquent-ros1-bridge -y --no-install-recommends
 
 #
 # User info
