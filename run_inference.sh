@@ -49,6 +49,7 @@ fi
 # Volumes (modify with your own path here)
 volumes="-v $PWD/eloquent_ws:/home/$USER/eloquent_ws \
 -v $PWD/catkin_ws:/home/$USER/catkin_ws \
+-v $PWD/bridge_ws:/home/$USER/bridge_ws \
 -v $PWD/results:/home/$USER/results \
 -v $PWD/Data:/home/$USER/Data"
 
@@ -94,5 +95,3 @@ else
     fi
 
 fi
-
-

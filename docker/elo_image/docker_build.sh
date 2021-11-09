@@ -11,4 +11,3 @@ docker image build --build-arg username0=$username \
 --build-arg userid0=$userid \
 --shm-size=64g -t \
 dockagx_elo_2 .
-

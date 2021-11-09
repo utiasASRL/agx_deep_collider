@@ -19,7 +19,15 @@ echo "0---------------------------------------------0"
 echo ""
 echo ""
 echo "0---------------------------------------------0"
-echo "| Step 3: Build everything except ros1_bridge |"
+echo "| Step 3:         Build ros1_bridge           |"
 echo "0---------------------------------------------0"
 
 ./run_inference.sh -c "./build_ros1_bridge.sh"
+
+echo ""
+echo ""
+echo "0---------------------------------------------0"
+echo "| Step 4:    Check the custom bridged msg     |"
+echo "0---------------------------------------------0"
+
+./run_inference.sh -c "./check_custom_bridge_msgs.sh"

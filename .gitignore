@@ -2,7 +2,12 @@
 
 /results
 
+**/build_isolated/**
+**/devel_isolated/**
+**/install_isolated/**
 **/build/**
+**/install/**
+**/log/**
 
 # Byte-compiled / optimized / DLL files
 *.py[cod]
