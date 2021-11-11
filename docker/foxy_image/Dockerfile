@@ -185,32 +185,6 @@ RUN cd ${ROS_ROOT} && \
 	rm ${ROS_ROOT}/src/libyaml_vendor/CMakeLists.txt && \
 	wget --no-check-certificate https://raw.githubusercontent.com/ros2/libyaml_vendor/master/CMakeLists.txt -P ${ROS_ROOT}/src/libyaml_vendor/
 
-# libeigen3-dev libspdlog-dev python3-lark-parser python3-pygments uncrustify libxslt1.1 python3-bs4 python3-chardet python3-html5lib python3-lxml python3-webencodings
-# python3-asn1crypto python3-cffi-backend python3-cryptography python3-idna net-tools python3-ifcfg python3-mock python3-pbr libbenchmark-dev libbenchmark1
-# python3-netifaces libxml2-utils libzstd-dev pydocstyle python3-pydocstyle python3-snowballstemmer
-
-# ca-certificates-java default-jdk default-jdk-headless default-jre
-# default-jre-headless fonts-dejavu-extra java-common libatk-wrapper-java
-# libatk-wrapper-java-jni libfontenc1 libxft2 libxmuu1 libxtst6 libxxf86dga1
-# openjdk-11-jdk openjdk-11-jdk-headless openjdk-11-jre
-# openjdk-11-jre-headless x11-utils
-
-# libaopalliance-java libapache-pom-java libatinject-jsr330-api-java
-# libcdi-api-java libcommons-cli-java libcommons-io-java libcommons-lang3-java
-# libcommons-parent-java libgeronimo-annotation-1.3-spec-java
-# libgeronimo-interceptor-3.0-spec-java libguava-java libguice-java
-# libhawtjni-runtime-java libjansi-java libjansi-native-java libjsr305-java
-# libmaven-parent-java libmaven-resolver-java libmaven-shared-utils-java
-# libmaven3-core-java libplexus-cipher-java libplexus-classworlds-java
-# libplexus-component-annotations-java libplexus-interpolation-java
-# libplexus-sec-dispatcher-java libplexus-utils2-java libsisu-inject-java
-# libsisu-plexus-java libslf4j-java libwagon-file-java
-# libwagon-http-shaded-java libwagon-provider-api-java maven
-
-# python3-pytest-mock libcppunit-1.14-0 libcppunit-dev
-
-
-
 #
 # install dependencies using rosdep
 #
@@ -242,38 +216,39 @@ ENV RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 #
 # Additional ros packages
 #
-# RUN apt-get install ros-foxy-velodyne* -y --no-install-recommends
-# RUN apt-get install ros-eloquent-pointcloud-to-laserscan -y --no-install-recommends
-# RUN apt-get install ros-eloquent-tf2* -y --no-install-recommends
-# RUN apt-get install ros-eloquent-navigation* -y --no-install-recommends
-# RUN apt-get install ros-eloquent-teleop-twist-keyboard -y --no-install-recommends
-# RUN apt-get install ros-eloquent-costmap-converter -y --no-install-recommends
-# RUN apt-get install ros-eloquent-rqt-graph -y --no-install-recommends
-
-RUN apt-get update     
+RUN apt-get update
 RUN apt-get install vim gedit -y --no-install-recommends
 
 # 
 # Install ROS melodic
 #
 RUN sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'   
-RUN curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | apt-key add -    
+RUN curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | apt-key add -
 RUN apt-get update 
-RUN apt-get install ros-melodic-ros-base -y --no-install-recommends     
-# RUN echo 'source /opt/ros/melodic/setup.bash' >> /root/.bashrc   
+RUN apt-get install ros-melodic-ros-base -y --no-install-recommends
+RUN apt-get install ros-melodic-tf2* -y --no-install-recommends
+# RUN echo 'source /opt/ros/melodic/setup.bash' >> /root/.bashrc
 
+#
+# Complete foxy installation
+#
+RUN cd ${ROS_ROOT}/src && \
+	rm -r geometry2 rcl_interfaces common_interfaces
+RUN git clone --branch foxy https://github.com/ros2/geometry2 ${ROS_ROOT}/src/geometry2
+RUN git clone --branch foxy https://github.com/ros2/rcl_interfaces ${ROS_ROOT}/src/rcl_interfaces
+RUN git clone --branch foxy https://github.com/ros2/common_interfaces ${ROS_ROOT}/src/common_interfaces
+
+RUN cd ${ROS_ROOT} && \
+	colcon build --symlink-install
 
 #
 # User info
 # 
-ARG username0=bag    
-ARG userid0=1085     
-ENV PATH=/usr/local/nvidia/bin:/usr/local/cuda/bin:/usr/local/cuda-10.2/bin:/usr/local/cuda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin    
-ENV LD_LIBRARY_PATH=/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/local/cuda/lib64:/usr/local/cuda-10.2/targets/aarch64-linux/lib:    
-ENV USER=administrator   
-#COPY file:3ece9477fa538f3b109134f0cbe8f8352265fbac337135de2873d02de1d32f13 in /ros_entrypoint.sh    
-# COPY ros_entrypoint.sh /ros_entrypoint.sh
-
+ARG username0=bag
+ARG userid0=1085
+ENV PATH=/usr/local/nvidia/bin:/usr/local/cuda/bin:/usr/local/cuda-10.2/bin:/usr/local/cuda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ENV LD_LIBRARY_PATH=/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/local/cuda/lib64:/usr/local/cuda-10.2/targets/aarch64-linux/lib:
+ENV USER=administrator
 
 #
 # Additional packages
@@ -293,8 +268,6 @@ RUN adduser $username0 root
 RUN adduser $username0 sudo 
 RUN echo $username0':myhaljack' | chpasswd  
 USER administrator  
-
-
 
 CMD ["bash"]   
 WORKDIR /home/administrator/eloquent_ws   
