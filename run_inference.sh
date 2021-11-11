@@ -73,7 +73,7 @@ if [ "$devdoc" = true ] ; then
     $volumes \
     $other_args \
     --name "collidoc-dev" \
-    dockagx_elo_2 \
+    dockagx_foxy \
     $command
 
 else
@@ -86,7 +86,7 @@ else
     $volumes \
     $other_args \
     --name "collidoc-$now" \
-    dockagx_elo_2 \
+    dockagx_foxy \
     $command
 
     # Attach a log parameters and log the detached docker
