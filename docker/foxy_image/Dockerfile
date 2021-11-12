@@ -49,14 +49,68 @@ RUN apt-get update && \
     #&& rm -rf /var/lib/apt/lists/*
     
 
-# 
-# Install ROS melodic
 #
-RUN sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'   
-RUN curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | apt-key add -    
-RUN apt-get update 
-RUN apt-get install ros-melodic-ros-base -y --no-install-recommends     
-RUN echo 'source /opt/ros/melodic/setup.bash' >> /root/.bashrc    
+#######################
+# Install ROS melodic #
+#######################
+#
+
+# RUN sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'   
+# RUN curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | apt-key add -
+# RUN apt-get update 
+# RUN apt-get install ros-melodic-ros-base -y --no-install-recommends
+# RUN apt-get install ros-melodic-tf2* -y --no-install-recommends
+
+RUN sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
+RUN curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | apt-key add -
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+          libpython3-dev \
+          python3-rosdep \
+          python3-rosinstall-generator \
+          python3-vcstool \
+          build-essential
+	
+RUN apt-get update
+RUN pip3 install rosdep rospkg rosinstall_generator rosinstall wstool vcstools catkin_tools catkin_pkg
+
+RUN apt-get update && \
+    rosdep init && \
+    rosdep update
+
+RUN mkdir -p /ros_catkin_ws/src && \
+	cd /ros_catkin_ws && \
+	catkin config --init -DCMAKE_BUILD_TYPE=Release --blacklist rqt_rviz rviz_plugin_tutorials librviz_tutorial --install
+
+# setup ROS install
+RUN cd /ros_catkin_ws && \
+	rosinstall_generator ros_base --rosdistro melodic --deps --tar > melodic-ros-base.rosinstall
+
+# Download src
+RUN cd /ros_catkin_ws && \
+	wstool update -j4 -t src
+
+# setup environment and install dependencies
+ENV ROS_PYTHON_VERSION=3
+RUN pip3 install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-18.04 wxPython
+
+
+
+
+
+# #
+# # download/build the ROS source
+# #
+# RUN mkdir ros_catkin_ws && \
+#     cd ros_catkin_ws && \
+#     rosinstall_generator ${ROS_PKG} vision_msgs --rosdistro ${ROS_DISTRO} --deps --tar > ${ROS_DISTRO}-${ROS_PKG}.rosinstall && \
+#     mkdir src && \
+#     vcs import --input ${ROS_DISTRO}-${ROS_PKG}.rosinstall ./src && \
+#     apt-get update && \
+#     rosdep install --from-paths ./src --ignore-packages-from-source --rosdistro ${ROS_DISTRO} --skip-keys python3-pykdl -y && \
+#     python3 ./src/catkin/bin/catkin_make_isolated --install --install-space ${ROS_ROOT} -DCMAKE_BUILD_TYPE=Release && \
+#     rm -rf /var/lib/apt/lists/*
 
 
 #
@@ -72,11 +126,6 @@ RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o 
 RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/ros2.list > /dev/null
 
 RUN apt-get update
-
-RUN apt-get install -y --no-install-recommends python3-catkin-pkg
-RUN apt-get install -y --no-install-recommends python3-rospkg
-RUN apt-get install -y --no-install-recommends python3-rosdistro
-RUN apt-get install -y --no-install-recommends python3-rosdep-modules
 
 RUN apt-get install -y --no-install-recommends \
 		libbullet-dev \
@@ -219,27 +268,27 @@ ENV RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 RUN apt-get update
 RUN apt-get install vim gedit -y --no-install-recommends
 
-# 
-# Install ROS melodic
-#
-RUN sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'   
-RUN curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | apt-key add -
-RUN apt-get update 
-RUN apt-get install ros-melodic-ros-base -y --no-install-recommends
-RUN apt-get install ros-melodic-tf2* -y --no-install-recommends
-# RUN echo 'source /opt/ros/melodic/setup.bash' >> /root/.bashrc
+# # 
+# # Install ROS melodic
+# #
+# RUN sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'   
+# RUN curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | apt-key add -
+# RUN apt-get update 
+# RUN apt-get install ros-melodic-ros-base -y --no-install-recommends
+# RUN apt-get install ros-melodic-tf2* -y --no-install-recommends
+# # RUN echo 'source /opt/ros/melodic/setup.bash' >> /root/.bashrc
 
-#
-# Complete foxy installation
-#
-RUN cd ${ROS_ROOT}/src && \
-	rm -r geometry2 rcl_interfaces common_interfaces
-RUN git clone --branch foxy https://github.com/ros2/geometry2 ${ROS_ROOT}/src/geometry2
-RUN git clone --branch foxy https://github.com/ros2/rcl_interfaces ${ROS_ROOT}/src/rcl_interfaces
-RUN git clone --branch foxy https://github.com/ros2/common_interfaces ${ROS_ROOT}/src/common_interfaces
+# #
+# # Complete foxy installation
+# #
+# RUN cd ${ROS_ROOT}/src && \
+# 	rm -r geometry2 rcl_interfaces common_interfaces
+# RUN git clone --branch foxy https://github.com/ros2/geometry2 ${ROS_ROOT}/src/geometry2
+# RUN git clone --branch foxy https://github.com/ros2/rcl_interfaces ${ROS_ROOT}/src/rcl_interfaces
+# RUN git clone --branch foxy https://github.com/ros2/common_interfaces ${ROS_ROOT}/src/common_interfaces
 
-RUN cd ${ROS_ROOT} && \
-	colcon build --symlink-install
+# RUN cd ${ROS_ROOT} && \
+# 	colcon build --symlink-install
 
 #
 # User info
