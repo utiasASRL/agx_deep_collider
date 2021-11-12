@@ -79,38 +79,76 @@ RUN apt-get update && \
     rosdep init && \
     rosdep update
 
+ENV ROS_PKG=ros_base
+ENV ROS_DISTRO=melodic
+ENV ROS_ROOT=/opt/ros/melodic
+RUN pip3 install empy
+
 RUN mkdir -p /ros_catkin_ws/src && \
 	cd /ros_catkin_ws && \
 	catkin config --init -DCMAKE_BUILD_TYPE=Release --blacklist rqt_rviz rviz_plugin_tutorials librviz_tutorial --install
 
 # setup ROS install
-RUN cd /ros_catkin_ws && \
-	rosinstall_generator ros_base --rosdistro melodic --deps --tar > melodic-ros-base.rosinstall
+WORKDIR /ros_catkin_ws
+RUN rosinstall_generator --rosdistro melodic --deps --tar ${ROS_PKG} tf2 > melodic-ros-base.rosinstall
 
 # Download src
-RUN cd /ros_catkin_ws && \
-	wstool update -j4 -t src
+RUN vcs import --input melodic-ros-base.rosinstall ./src
+
 
 # setup environment and install dependencies
-ENV ROS_PYTHON_VERSION=3
-RUN pip3 install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-18.04 wxPython
+ENV ROS_PYTHON_VERSION=3 
+
+# # Install wxpython
+# RUN apt-get install -y --no-install-recommends dpkg-dev
+	
+# RUN apt-get install -y --no-install-recommends \
+# 	freeglut3-dev  \ 
+# 	libgl1-mesa-dev  \ 
+# 	libglu1-mesa-dev  \ 
+# 	libgstreamer-plugins-base1.0-dev  \ 
+# 	libgtk-3-dev  \ 
+# 	libjpeg-dev  \ 
+# 	libnotify-dev  \ 
+# 	libpng-dev  \ 
+# 	libsdl2-dev  \ 
+# 	libsm-dev  \ 
+# 	libtiff-dev  \ 
+# 	libwebkit2gtk-4.0-dev  \ 
+# 	libxtst-dev  \ 
+# 	doxygen  \ 
+# 	python3-requests
+
+# RUN pip3 install python-config
+# WORKDIR /wxPython_ws
+# RUN git clone https://github.com/wxWidgets/Phoenix
+# WORKDIR /wxPython_ws/Phoenix
+# RUN git submodule update --init --recursive
+# RUN python3 build.py dox etg --nodoc sip build
+# RUN python3 build.py install
+
+# Fixing install in ws
+RUN printf "#!/bin/bash\n# Check whether root\nfor pkg in \"\$@\"\ndo\n    echo \"Installing $pkg\"\n    apt-get -my install $pkg >> install.log\ndone\n" > install_skip.sh
+RUN chmod +x install_skip.sh
+
+# sed magic
+RUN ./install_skip.sh `rosdep check --from-paths src --ignore-src | grep python | sed -e "s/^apt\t//g" | sed -z "s/\n/ /g" | sed -e "s/python/python3/g"`
+RUN rosdep install --from-paths src --ignore-src -y --skip-keys="`rosdep check --from-paths src --ignore-src | grep python | sed -e "s/^apt\t//g" | sed -z "s/\n/ /g"`"
+RUN find . -type f -exec sed -i 's/\/usr\/bin\/env[ ]*python/\/usr\/bin\/env python3/g' {} +
 
 
+# RUN catkin build
+#RUN catkin build -DPYTHON_EXECUTABLE=/usr/bin/python3 -DPYTHON_INCLUDE_DIR=/usr/include/python3.6m
+RUN python3 ./src/catkin/bin/catkin_make_isolated --install --install-space /opt/ros/melodic -DCMAKE_BUILD_TYPE=Release
 
+# Reset ros env variables for foxy
+ENV ROS_DISTRO=foxy
+ENV ROS_ROOT=/opt/ros/foxy
 
-
-# #
-# # download/build the ROS source
-# #
-# RUN mkdir ros_catkin_ws && \
-#     cd ros_catkin_ws && \
-#     rosinstall_generator ${ROS_PKG} vision_msgs --rosdistro ${ROS_DISTRO} --deps --tar > ${ROS_DISTRO}-${ROS_PKG}.rosinstall && \
-#     mkdir src && \
-#     vcs import --input ${ROS_DISTRO}-${ROS_PKG}.rosinstall ./src && \
-#     apt-get update && \
-#     rosdep install --from-paths ./src --ignore-packages-from-source --rosdistro ${ROS_DISTRO} --skip-keys python3-pykdl -y && \
-#     python3 ./src/catkin/bin/catkin_make_isolated --install --install-space ${ROS_ROOT} -DCMAKE_BUILD_TYPE=Release && \
-#     rm -rf /var/lib/apt/lists/*
+# Additionnal dependencies
+RUN apt-get install nano -y --no-install-recommends
+RUN pip3 install --upgrade scikit-learn
+RUN pip3 install --upgrade imageio
 
 
 #
@@ -183,7 +221,7 @@ ENV ROS_PKG=ros_base
 RUN mkdir -p ${ROS_ROOT}/src
 
 RUN cd ${ROS_ROOT} && \
-    rosinstall_generator --deps --rosdistro ${ROS_DISTRO} ${ROS_PKG} \
+    rosinstall_generator --deps --tar --rosdistro ${ROS_DISTRO} ${ROS_PKG} \
 	launch_xml \
 	launch_yaml \
 	example_interfaces > ros2.${ROS_DISTRO}.${ROS_PKG}.rosinstall && \
@@ -193,7 +231,7 @@ RUN cd ${ROS_ROOT} && \
 # Split the rosinstall file to make sure there in no bug with network
 #
 RUN cd ${ROS_ROOT} && \
-	split -l 4 ros2.${ROS_DISTRO}.${ROS_PKG}.rosinstall seg_ --verbose
+	split -l 64 ros2.${ROS_DISTRO}.${ROS_PKG}.rosinstall seg_ --verbose
 
 RUN cd ${ROS_ROOT} && \
 	for f in seg_*; do echo $f && if [[ $(wc -l < $f) -ge 4 ]]; then echo "OK"; fi; done
@@ -202,32 +240,41 @@ RUN cd ${ROS_ROOT} && \
 # Install each splitted install file
 #
 RUN cd ${ROS_ROOT} && \
-	for f in seg_a*; do if [[ $(wc -l < $f) -ge 4 ]]; then cat $f && vcs import --debug src < $f; fi; done
+	vcs import src < seg_aa
 RUN cd ${ROS_ROOT} && \
-	for f in seg_b*; do if [[ $(wc -l < $f) -ge 4 ]]; then cat $f && vcs import --debug src < $f; fi; done
+	vcs import src < seg_ab
 RUN cd ${ROS_ROOT} && \
-	for f in seg_c*; do if [[ $(wc -l < $f) -ge 4 ]]; then cat $f && vcs import --debug src < $f; fi; done
+	vcs import src < seg_ac
 RUN cd ${ROS_ROOT} && \
-	for f in seg_d*; do if [[ $(wc -l < $f) -ge 4 ]]; then cat $f && vcs import --debug src < $f; fi; done
+	vcs import src < seg_ad
 RUN cd ${ROS_ROOT} && \
-	for f in seg_e*; do if [[ $(wc -l < $f) -ge 4 ]]; then cat $f && vcs import --debug src < $f; fi; done
+	vcs import src < seg_ae
 RUN cd ${ROS_ROOT} && \
-	for f in seg_f*; do if [[ $(wc -l < $f) -ge 4 ]]; then cat $f && vcs import --debug src < $f; fi; done
-RUN echo "1"
+	vcs import src < seg_af
 RUN cd ${ROS_ROOT} && \
-	for f in seg_g*; do if [[ $(wc -l < $f) -ge 4 ]]; then cat $f && vcs import --debug src < $f; fi; done
+	vcs import src < seg_ag
 RUN cd ${ROS_ROOT} && \
-	for f in seg_h*; do if [[ $(wc -l < $f) -ge 4 ]]; then cat $f && vcs import --debug src < $f; fi; done
+	vcs import src < seg_ah
+RUN cd ${ROS_ROOT} && \
+	vcs import src < seg_ai
+RUN cd ${ROS_ROOT} && \
+	vcs import src < seg_aj
+RUN cd ${ROS_ROOT} && \
+	vcs import src < seg_ak
+RUN cd ${ROS_ROOT} && \
+	vcs import src < seg_al
+RUN cd ${ROS_ROOT} && \
+	vcs import src < seg_am
 
 #
 # download unreleased packages
 #  
 RUN git clone --branch ros2 https://github.com/Kukanani/vision_msgs ${ROS_ROOT}/src/vision_msgs && \
 	#git clone --branch debian/foxy/gmock_vendor https://github.com/ros2-gbp/googletest-release ${ROS_ROOT}/src/googletest/gmock_vendor && \
-    git clone --branch ${ROS_DISTRO} https://github.com/ros2/demos demos && \
-    cp -r demos/demo_nodes_cpp ${ROS_ROOT}/src && \
-    cp -r demos/demo_nodes_py ${ROS_ROOT}/src && \
-    rm -r -f demos
+    git clone --branch ${ROS_DISTRO} https://github.com/ros2/demos /tmp/demos && \
+    cp -r /tmp/demos/demo_nodes_cpp ${ROS_ROOT}/src && \
+    cp -r /tmp/demos/demo_nodes_py ${ROS_ROOT}/src && \
+    rm -r -f /tmp/demos
 	
 # patch libyaml - https://github.com/dusty-nv/jetson-containers/issues/41#issuecomment-774767272
 RUN cd ${ROS_ROOT} && \
@@ -239,7 +286,6 @@ RUN cd ${ROS_ROOT} && \
 #
 RUN apt-get update && \
     cd ${ROS_ROOT} && \
-    rosdep init && \
     rosdep update && \
     rosdep install --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} -y \
 		--skip-keys "console_bridge fastcdr fastrtps rti-connext-dds-5.3.1 urdfdom_headers qt_gui ros2interface kdl_parser gmock_vendor"
@@ -278,18 +324,29 @@ RUN apt-get install vim gedit -y --no-install-recommends
 # RUN apt-get install ros-melodic-tf2* -y --no-install-recommends
 # # RUN echo 'source /opt/ros/melodic/setup.bash' >> /root/.bashrc
 
-# #
-# # Complete foxy installation
-# #
-# RUN cd ${ROS_ROOT}/src && \
-# 	rm -r geometry2 rcl_interfaces common_interfaces
-# RUN git clone --branch foxy https://github.com/ros2/geometry2 ${ROS_ROOT}/src/geometry2
-# RUN git clone --branch foxy https://github.com/ros2/rcl_interfaces ${ROS_ROOT}/src/rcl_interfaces
-# RUN git clone --branch foxy https://github.com/ros2/common_interfaces ${ROS_ROOT}/src/common_interfaces
+#
+# Complete foxy installation
+#
+RUN cd ${ROS_ROOT}/src && \
+	rm -r geometry2 rcl_interfaces common_interfaces
+RUN git clone --branch foxy https://github.com/ros2/geometry2 ${ROS_ROOT}/src/geometry2
+RUN git clone --branch foxy https://github.com/ros2/rcl_interfaces ${ROS_ROOT}/src/rcl_interfaces
+RUN git clone --branch foxy https://github.com/ros2/common_interfaces ${ROS_ROOT}/src/common_interfaces
 
-# RUN cd ${ROS_ROOT} && \
-# 	colcon build --symlink-install
+RUN cd ${ROS_ROOT} && \
+	colcon build --symlink-install
 
+# REinstall CMake latest version from kitware
+# RUN apt-get remove -y --purge --auto-remove cmake
+RUN apt-get update && \
+	apt-get install -y software-properties-common lsb-release && \
+	apt-get clean all
+	
+RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null
+RUN apt-add-repository "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main"
+
+RUN apt-get update
+RUN apt-get install -y --no-install-recommends --upgrade cmake
 #
 # User info
 # 
@@ -303,9 +360,6 @@ ENV USER=administrator
 # Additional packages
 #
 # RUN apt-get install ros-eloquent-costmap-converter-msgs -y --no-install-recommends
-RUN apt-get install nano -y --no-install-recommends
-RUN pip3 install --upgrade scikit-learn
-RUN pip3 install --upgrade imageio
 
 # RUN apt-get install ros-eloquent-ros1-bridge -y --no-install-recommends
 
