@@ -333,6 +333,14 @@ RUN git clone --branch foxy https://github.com/ros2/geometry2 ${ROS_ROOT}/src/ge
 RUN git clone --branch foxy https://github.com/ros2/rcl_interfaces ${ROS_ROOT}/src/rcl_interfaces
 RUN git clone --branch foxy https://github.com/ros2/common_interfaces ${ROS_ROOT}/src/common_interfaces
 
+# Fix for pointcloud2 publication
+RUN git clone --branch master https://github.com/ros2/rosidl_python ${ROS_ROOT}/src/rosidl_python
+RUN cd ${ROS_ROOT}/src && \
+	rm rosidl_generator_py/resource/_msg_support.c.em
+RUN cd ${ROS_ROOT}/src && \
+	mv rosidl_python/rosidl_generator_py/resource/_msg_support.c.em rosidl_generator_py/resource/_msg_support.c.em && \
+	rm -r rosidl_python
+
 RUN cd ${ROS_ROOT} && \
 	colcon build --symlink-install
 
