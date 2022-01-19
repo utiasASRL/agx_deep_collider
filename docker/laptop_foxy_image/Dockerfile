@@ -325,11 +325,11 @@ RUN  pip3 install argcomplete \
 # RUN cd ${ROS_ROOT} && \
 # 	colcon build --symlink-install
 
-#
-# Set the default DDS middleware to cyclonedds
-# https://github.com/ros2/rclcpp/issues/1335
-#
-ENV RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+# #
+# # Set the default DDS middleware to cyclonedds
+# # https://github.com/ros2/rclcpp/issues/1335
+# #
+# ENV RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 
 #
 ###############
