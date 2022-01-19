@@ -33,7 +33,7 @@ fi
 ###########################
 
 # Docker run arguments (depending if we run detached or not)
-docker_args="-it --rm --shm-size=64g --runtime nvidia"
+docker_args="-it --rm --shm-size=64g" # --runtime nvidia"
 
 # Running detached
 if [ "$detach" = true ] ; then
@@ -73,7 +73,7 @@ if [ "$devdoc" = true ] ; then
     $volumes \
     $other_args \
     --name "collidoc-dev" \
-    dockagx_foxy \
+    laptop_foxy \
     $command
 
 else
@@ -86,7 +86,7 @@ else
     $volumes \
     $other_args \
     --name "collidoc-$now" \
-    dockagx_foxy \
+    laptop_foxy \
     $command
 
     # Attach a log parameters and log the detached docker
