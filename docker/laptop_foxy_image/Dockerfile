@@ -3,7 +3,8 @@
 #   http://wiki.ros.org/melodic/Installation/Ubuntu
 
 #
-ARG BASE_IMAGE=nvcr.io/nvidia/cudagl:11.3.1-devel-ubuntu20.04
+ARG BASE_IMAGE=nvcr.io/nvidia/cudagl:11.3.0-devel-ubuntu20.04
+# ARG BASE_IMAGE=nvcr.io/nvidia/pytorch:21.10-py3
 FROM ${BASE_IMAGE}
 
 ARG ROS_PKG=desktop_full
@@ -17,7 +18,7 @@ SHELL ["/bin/bash", "-c"]
 WORKDIR /tmp
 
 # change the locale from POSIX to UTF-8
-RUN apt-get clean && apt-get update && apt-get install -y locales
+RUN apt-get update && apt-get install -y locales
 RUN locale-gen en_US en_US.UTF-8 && update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
 ENV LANG=en_US.UTF-8
 ENV PYTHONIOENCODING=utf-8
@@ -43,14 +44,14 @@ RUN apt-get update && \
 # Install python packages
 #
 RUN pip3 install --upgrade pip     
-RUN pip3 install setuptools  
-RUN pip3 install numpy scikit-learn matplotlib PyYAML  
-RUN pip3 install psutil 
-RUN pip3 install pynvml  
-RUN pip3 install autopep8
-RUN pip3 install flake8
-RUN pip3 install torch==1.10.1+cu113 torchvision==0.11.2+cu113 torchaudio==0.10.1+cu113 -f https://download.pytorch.org/whl/cu113/torch_stable.html
+RUN pip3 install --upgrade setuptools  
+RUN pip3 install --upgrade numpy scikit-learn matplotlib PyYAML  
+RUN pip3 install --upgrade psutil 
+RUN pip3 install --upgrade pynvml  
+RUN pip3 install --upgrade autopep8
+RUN pip3 install --upgrade flake8
 RUN pip3 install --upgrade imageio
+RUN pip3 install torch==1.10.1+cu113 torchvision==0.11.2+cu113 torchaudio==0.10.1+cu113 -f https://download.pytorch.org/whl/cu113/torch_stable.html
 
 # 
 # add the ROS deb repo to the apt sources list
@@ -195,17 +196,7 @@ RUN apt-get install ros-foxy-desktop -y --no-install-recommends
 RUN apt-get update
 
 RUN apt-get install -y --no-install-recommends \
-		libbullet-dev \
-		libpython3-dev \
-		python3-colcon-common-extensions \
-		python3-flake8 \
-		python3-pip \
-		python3-numpy \
-		python3-pytest-cov \
-		python3-rosdep \
-		python3-setuptools \
-		python3-vcstool \
-		python3-rosinstall-generator
+		python3-colcon-common-extensions 
 
 # RUN apt-get install -y --no-install-recommends \
 # 		libasio-dev \
@@ -224,10 +215,7 @@ RUN  pip3 install argcomplete \
 		flake8-deprecated \
 		flake8-docstrings \
 		flake8-import-order \
-		flake8-quotes \
-		pytest-repeat \
-		pytest-rerunfailures \
-		pytest
+		flake8-quotes
 	
 # #
 # # compile yaml-cpp-0.6, which some ROS packages may use (but is not in the 18.04 apt repo)
@@ -238,8 +226,8 @@ RUN  pip3 install argcomplete \
 #     cd build && \
 #     cmake -DBUILD_SHARED_LIBS=ON .. && \
 #     make -j$(nproc) && \
-#     cp libyaml-cpp.so.0.6.0 /usr/lib/amd64-linux-gnu/ && \
-#     ln -s /usr/lib/amd64-linux-gnu/libyaml-cpp.so.0.6.0 /usr/lib/amd64-linux-gnu/libyaml-cpp.so.0.6
+#     cp libyaml-cpp.so.0.6.0 /usr/lib/x86_64-linux-gnu/ && \
+#     ln -s /usr/lib/x86_64-linux-gnu/libyaml-cpp.so.0.6.0 /usr/lib/x86_64-linux-gnu/libyaml-cpp.so.0.6
 
 # # 
 # # download/build ROS from source
@@ -331,37 +319,9 @@ RUN  pip3 install argcomplete \
 # #
 # ENV RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 
-#
-###############
-# Final steps #
-###############
-#
-
-# #
-# # Complete foxy installation
-# #
-# RUN cd ${ROS_ROOT}/src && \
-# 	rm -r geometry2 rcl_interfaces common_interfaces
-# RUN git clone --branch foxy https://github.com/ros2/geometry2 ${ROS_ROOT}/src/geometry2
-# RUN git clone --branch foxy https://github.com/ros2/rcl_interfaces ${ROS_ROOT}/src/rcl_interfaces
-# RUN git clone --branch foxy https://github.com/ros2/common_interfaces ${ROS_ROOT}/src/common_interfaces
-
-# # Fix for pointcloud2 publication
-# RUN git clone --branch master https://github.com/ros2/rosidl_python ${ROS_ROOT}/src/rosidl_python
-# RUN cd ${ROS_ROOT}/src && \
-# 	rm rosidl_generator_py/resource/_msg_support.c.em
-# RUN cd ${ROS_ROOT}/src && \
-# 	mv rosidl_python/rosidl_generator_py/resource/_msg_support.c.em rosidl_generator_py/resource/_msg_support.c.em && \
-# 	rm -r rosidl_python
-
-# RUN cd ${ROS_ROOT} && \
-# 	colcon build --symlink-install
-
 # REinstall CMake latest version from kitware
-# RUN apt-get remove -y --purge --auto-remove cmake
 RUN apt-get update && \
-	apt-get install -y software-properties-common lsb-release && \
-	apt-get clean all
+	apt-get install -y software-properties-common lsb-release
 	
 RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null
 RUN apt-add-repository "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main"
@@ -370,13 +330,26 @@ RUN apt-get update
 RUN apt-get install -y --no-install-recommends --upgrade cmake
 
 #
+###############
+# Final steps #
+###############
+#
+
+RUN apt-get install ros-noetic-jackal* -y --no-install-recommends
+
+
+#
 # User info
 # 
 ARG username0=bag
 ARG userid0=1085
 
-ENV PATH=/usr/local/nvidia/bin:/usr/local/cuda/bin:/usr/local/cuda-11.3/bin:/usr/local/cuda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-ENV LD_LIBRARY_PATH=/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/local/cuda/lib64:/usr/local/cuda-11.3/targets/amd64-linux/lib:
+ENV PATH=/usr/local/nvidia/bin:/usr/local/cuda/bin:/usr/local/cuda-11.4/bin:/usr/local/cuda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ENV LD_LIBRARY_PATH=/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/local/cuda/lib64:/usr/local/cuda-11.4/targets/x86_64-linux/lib:
+
+
+ENV PATH /usr/local/nvidia/bin:${PATH}
+ENV LD_LIBRARY_PATH /usr/local/nvidia/lib:/usr/local/nvidia/lib64:${LD_LIBRARY_PATH}
 
 
 #
@@ -386,8 +359,10 @@ RUN useradd -u $userid0 $username0
 RUN adduser $username0 root
 RUN adduser $username0 sudo 
 RUN echo $username0':myhaljack' | chpasswd  
-USER $username0  
 
+WORKDIR /home/$username0/eloquent_ws
+RUN chown -R $username0:$username0 /home/$username0
+
+USER $username0  
 CMD ["bash"]   
-WORKDIR /home/administrator/eloquent_ws   
 

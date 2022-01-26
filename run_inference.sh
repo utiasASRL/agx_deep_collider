@@ -33,7 +33,7 @@ fi
 ###########################
 
 # Docker run arguments (depending if we run detached or not)
-docker_args="-it --rm --shm-size=64g" # --runtime nvidia"
+docker_args="-it --rm --gpus all --shm-size=64g" # --runtime nvidia"
 
 # Running detached
 if [ "$detach" = true ] ; then
