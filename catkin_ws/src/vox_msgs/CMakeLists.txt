@@ -52,6 +52,8 @@ find_package(catkin REQUIRED COMPONENTS
 add_message_files(
   FILES
   VoxGrid.msg
+  ObstacleMsg.msg
+  ObstacleArrayMsg.msg
 )
 
 ## Generate services in the 'srv' folder

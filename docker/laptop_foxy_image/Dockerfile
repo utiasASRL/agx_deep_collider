@@ -336,6 +336,8 @@ RUN apt-get install -y --no-install-recommends --upgrade cmake
 #
 
 RUN apt-get install ros-noetic-jackal* -y --no-install-recommends
+# RUN apt-get install ros-noetic-costmap-converter -y --no-install-recommends
+# RUN apt-get install ros-foxy-costmap-converter -y --no-install-recommends
 
 
 #
@@ -345,11 +347,7 @@ ARG username0=bag
 ARG userid0=1085
 
 ENV PATH=/usr/local/nvidia/bin:/usr/local/cuda/bin:/usr/local/cuda-11.4/bin:/usr/local/cuda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-ENV LD_LIBRARY_PATH=/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/local/cuda/lib64:/usr/local/cuda-11.4/targets/x86_64-linux/lib:
-
-
-ENV PATH /usr/local/nvidia/bin:${PATH}
-ENV LD_LIBRARY_PATH /usr/local/nvidia/lib:/usr/local/nvidia/lib64:${LD_LIBRARY_PATH}
+ENV LD_LIBRARY_PATH=/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/local/cuda/lib64:/usr/local/cuda-11.3/targets/x86_64-linux/lib:
 
 
 #
