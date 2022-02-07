@@ -63,7 +63,7 @@ other_args="-v $XSOCK:$XSOCK \
 	-e XAUTHORITY=${XAUTH} \
     -e DISPLAY=$DISPLAY \
     -e ROS_MASTER_URI=http://cpr-tor59-01:11311 \
-    -w=/home/$USER/eloquent_ws"
+    -w=/home/$USER/eloquent_ws/scripts"
 
 
 if [ "$devdoc" = true ] ; then

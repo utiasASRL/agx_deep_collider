@@ -339,6 +339,20 @@ RUN apt-get install ros-noetic-jackal* -y --no-install-recommends
 # RUN apt-get install ros-noetic-costmap-converter -y --no-install-recommends
 # RUN apt-get install ros-foxy-costmap-converter -y --no-install-recommends
 
+RUN apt-get install xterm -y --no-install-recommends
+ENV TERM xterm-256color
+
+
+RUN sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
+RUN curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | apt-key add -
+RUN apt-get update
+RUN apt-get install ros-noetic-move-base-flex -y --no-install-recommends
+RUN apt-get install libsuitesparse-dev -y --no-install-recommends
+RUN apt-get install ros-noetic-libg2o -y --no-install-recommends
+
+
+
+
 
 #
 # User info
@@ -362,5 +376,12 @@ WORKDIR /home/$username0/eloquent_ws
 RUN chown -R $username0:$username0 /home/$username0
 
 USER $username0  
+
+# Set xterm defaults
+WORKDIR /home/$username0
+RUN echo "xterm*background: black" >> .Xresources
+RUN echo "xterm*foreground: lightgray" >> .Xresources
+RUN echo "xterm*faceName: monospace:pixelsize=14" >> .Xresources
+
 CMD ["bash"]   
 
