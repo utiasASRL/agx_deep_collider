@@ -51,6 +51,7 @@ volumes="-v $PWD/eloquent_ws:/home/$USER/eloquent_ws \
 -v $PWD/catkin_ws:/home/$USER/catkin_ws \
 -v $PWD/bridge_ws:/home/$USER/bridge_ws \
 -v $PWD/results:/home/$USER/results \
+-v $HOME/.ssh:/home/$USER/.ssh \
 -v $PWD/Data:/home/$USER/Data"
 
 # Additional arguments to be able to open GUI
