@@ -64,6 +64,9 @@
         "cfenv": "cpp",
         "cinttypes": "cpp",
         "typeindex": "cpp",
-        "typeinfo": "cpp"
+        "typeinfo": "cpp",
+        "*.ipp": "cpp",
+        "core": "cpp",
+        "numericaldiff": "cpp"
     }
 }
