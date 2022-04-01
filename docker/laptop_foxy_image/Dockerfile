@@ -352,6 +352,9 @@ RUN apt-get install ros-noetic-libg2o -y --no-install-recommends
 RUN apt-get install ros-noetic-ros-numpy -y --no-install-recommends
 RUN apt-get install ros-noetic-navigation -y --no-install-recommends
 
+RUN apt-get update
+RUN apt-get install ros-noetic-jsk-rviz-plugins -y --no-install-recommends
+
 
 #
 # User info
