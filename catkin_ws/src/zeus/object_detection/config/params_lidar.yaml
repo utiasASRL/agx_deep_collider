@@ -1,0 +1,41 @@
+# Black fly camera projection matrix
+P: [1449.144043, 0.000000, 1199.158041, 0.000000,
+    0.000, 1456.590741, 1036.123288, 0.000000,
+    0.0, 0.0, 1.000000, 0.000000,
+    0.0, 0.0, 0.0, 1.0]
+P2: [4763.541992, 0.000000, 1200.497496, 0.000000,
+     0.000000, 4792.670898, 1040.733783, 0.000000,
+     0.000000, 0.000000, 1.000000, 0.000000,
+     0.000000, 0.000000, 0.000000, 1.000000]
+P3: [1449.144043, 0.000000, 1199.158041, 0.000000,
+    0.000, 1456.590741, 1036.123288, 0.000000,
+    0.0, 0.0, 1.000000, 0.000000,
+    0.0, 0.0, 0.0, 1.0]
+P4: [1449.144043, 0.000000, 1199.158041, 0.000000,
+    0.000, 1456.590741, 1036.123288, 0.000000,
+    0.0, 0.0, 1.000000, 0.000000,
+    0.0, 0.0, 0.0, 1.0]
+# BEV Shape Parameters
+point_cloud_range: [-10.0, 10.0, -10.0, 10.0, -1.0, 1.5]   # xmin, xmax, ymin, ymax, zmin, zmax
+# Object size limits
+max_object_size: [1.25, 1.25, 2.0]        # max_l, max_w, max_h
+min_object_size: [0.0, 0.0, 0.25]        # smallest alowed object size
+max_object_z: 1.5                       # max height of an object relative to velodyne
+min_object_z: -0.5                      # min height of an object relative to velodyne
+# RANSAC Tuning Parameters
+MAX_DISTANCE_RANSAC: 0.10               # Max distance from RANSAC plane fit
+MAX_ITERATIONS_RANSAC: 25
+GROUND_KALMAN_GAIN: 0.27                # x_hat = x_check + k * (y - x_check)
+# Clustering Parameters:
+MIN_SAMPLES: 25                          # min number of points to retain a cluster
+CLUSTER_TOLERANCE: 0.20                 # how close do points need to be to cluster together
+# Secondary Clustering Parameters:
+secondary_cloud_range: [-10.0, 10.0, -10.0, 10.0, -1.0, 1.5] # xmin, xmax, ymin, ymax, zmin, zmax
+MIN_SAMPLES_SECONDARY: 10               # a diff number of points used for secondary clustering
+CLUSTER_TOLERANCE_SECONDARY: 0.20
+unknown_type: 3
+# Filtering Clusters:
+min_height_ped: 0.5                     # Min inferred height of pedestrian (filtering)
+max_height_ped: 4.0                     # Max inferred height of pedestrian (filtering)
+# Visualization:
+viz_divide: 2 # Divide visualization W, H by this factor (saves computation power)

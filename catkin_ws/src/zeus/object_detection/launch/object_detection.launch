@@ -1,0 +1,120 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="thread_num" default="8"/>
+    <arg name="visualization" default="true" />
+    <arg name="use_camera1" default="0" />
+    <arg name="use_camera3" default="0" />
+    <arg name="use_camera4" default="0" />
+    <arg name="map_name" default="" />
+    <!-- DEEP LEARNING OPENVINO NODES -->
+    <!--<group if="$(arg use_camera1)">
+        <node pkg="vino_ros" type="squeezeDet_vino" name="squeezeDet_vino_ped" output="screen">
+            <env name="thread_num" value="$(arg thread_num)"/>
+            <rosparam command="load" file="$(find object_detection)/config/params_squeezeDet_od.yaml"/>
+            <param name="camera" value="1" />
+            <param name="IMAGE_TOPIC" value="/blackfly/image_color" />
+            <param name="DETECTION_TOPIC" value="/Detections2D" />
+            <param name="FPGAID" value="0" />
+            <param name="ACCELERATION_DEVICE" value="CPU" />
+        </node>
+        <node pkg="vino_ros" type="detection_visualization" name="object_detector_raw_visualizer_ped" output="screen" if="$(arg visualization)">
+            <rosparam command="load" file="$(find object_detection)/config/params_squeezeDet_od.yaml"/>
+            <param name="IMAGE_TOPIC" value="/blackfly/image_color" />
+            <param name="DETECTION_TOPIC" value="/Detections2D" />
+        </node>
+    </group>
+    <group if="$(arg use_camera3)">
+        <node pkg="vino_ros" type="squeezeDet_vino" name="squeezeDet_vino_ped3" output="screen">
+            <env name="thread_num" value="$(arg thread_num)"/>
+            <rosparam command="load" file="$(find object_detection)/config/params_squeezeDet_od.yaml"/>
+            <param name="camera" value="3" />
+            <param name="IMAGE_TOPIC" value="/blackfly3/image_color" />
+            <param name="DETECTION_TOPIC" value="/Detections2D_3" />
+            <param name="FPGAID" value="0" />
+            <param name="ACCELERATION_DEVICE" value="CPU" />
+        </node>
+        <node pkg="vino_ros" type="detection_visualization" name="object_detector_raw_visualizer_ped3" output="screen" if="$(arg visualization)">
+            <rosparam command="load" file="$(find object_detection)/config/params_squeezeDet_od.yaml"/>
+            <param name="IMAGE_TOPIC" value="/blackfly3/image_color" />
+            <param name="DETECTION_TOPIC" value="/Detections2D_3" />
+        </node>
+    </group>
+    <group if="$(arg use_camera4)">
+        <node pkg="vino_ros" type="squeezeDet_vino" name="squeezeDet_vino_ped4" output="screen">
+            <env name="thread_num" value="$(arg thread_num)"/>
+            <rosparam command="load" file="$(find object_detection)/config/params_squeezeDet_od.yaml"/>
+            <param name="camera" value="4" />
+            <param name="IMAGE_TOPIC" value="/blackfly4/image_color" />
+            <param name="DETECTION_TOPIC" value="/Detections2D_4" />
+            <param name="FPGAID" value="0" />
+            <param name="ACCELERATION_DEVICE" value="CPU" />
+        </node>
+        <node pkg="vino_ros" type="detection_visualization" name="object_detector_raw_visualizer_ped4" output="screen" if="$(arg visualization)">
+            <rosparam command="load" file="$(find object_detection)/config/params_squeezeDet_od.yaml"/>
+            <param name="IMAGE_TOPIC" value="/blackfly4/image_color" />
+            <param name="DETECTION_TOPIC" value="/Detections2D_4" />
+        </node>
+    </group>-->
+    <!-- CLUSTER PUBLISHERS -->
+    <!--<node pkg="object_detection" type="cluster_publisher" name="cluster_publisher" output="screen" if="$(arg use_camera1)">
+        <rosparam command="load" file="$(find object_detection)/config/params_lidar.yaml" />
+        <param name="camera_frame" value="mono_link" />
+        <param name="lidar_topic" value="/velodyne_points" />
+        <param name="bb_topic" value="/Detections2D" />
+        <param name="output_append" value="" />
+    </node>
+    <node pkg="object_detection" type="cluster_publisher" name="cluster_publisher3" output="screen" if="$(arg use_camera3)">
+        <rosparam command="load" file="$(find object_detection)/config/params_lidar.yaml" />
+        <param name="camera_frame" value="mono_link3" />
+        <param name="lidar_topic" value="/velodyne_points" />
+        <param name="bb_topic" value="/Detections2D_3" />
+        <param name="output_append" value="_3" />
+    </node>
+    <node pkg="object_detection" type="cluster_publisher" name="cluster_publisher4" output="screen" if="$(arg use_camera4)">
+        <rosparam command="load" file="$(find object_detection)/config/params_lidar.yaml" />
+        <param name="camera_frame" value="mono_link4" />
+        <param name="lidar_topic" value="/velodyne_points" />
+        <param name="bb_topic" value="/Detections2D_4" />
+        <param name="output_append" value="_4" />
+    </node>-->
+    <!-- SECONDARY CLUSTERING -->
+<!--     <node pkg="object_detection" type="secondary_clustering" name="secondary_clustering" output="screen">
+        <rosparam command="load" file="$(find object_detection)/config/params_lidar.yaml" />
+        <param name="lidar_topic" value="/velodyne_points" />
+        <param name="output_append" value="_secondary" />
+    </node> -->
+    <!-- OBJECT TRACKER -->
+    <node pkg="object_detection" type="object_tracker" name="object_tracker" output="screen">
+        <rosparam command="load" file="$(find object_detection)/config/params_lidar.yaml" />
+        <rosparam command="load" file="$(find object_detection)/config/params_kalman.yaml" />
+        <param name="camera_frame" value="mono_link" />
+        <param name="det_topic" value="/Object/RawDetections3D" />
+        <param name="det_topic3" value="/Object/RawDetections3D_3" />
+        <param name="det_topic4" value="/Object/RawDetections3D_4" />
+        <param name="det_topic_secondary" value="/Object/RawDetections3D_secondary" />
+	    <param name="det_topic_occupancy" value="/Object/RawDetections3D_occupancy" />
+    </node>
+    <!-- OBJECT VISUALIZATION -->
+    <node pkg="object_detection" type="object_visualizer" name="object_visualizer" output="screen" if="$(arg visualization)">
+        <rosparam command="load" file="$(find object_detection)/config/params_lidar.yaml" />
+        <rosparam command="load" file="$(find object_detection)/config/params_vis.yaml" />
+        <param name="camera_frame" value="mono_link" />
+        <param name="camera_topic" value="/blackfly/image_color" />
+        <param name="lidar_topic" value="/velodyne_points" />
+        <param name="bb_topic" value="/Object/Detections3D" />
+        <param name="output_append" value="" />
+        <param name="map_name" value="$(arg map_name)" />
+    </node>
+    <!-- OCCUPANCY GRID CLUSTERING -->
+    <node pkg="object_detection" type="occupancy_grid" name="occupancy_grid" output="screen">
+        <rosparam command="load" file="$(find object_detection)/config/params_lidar.yaml" />
+        <rosparam command="load" file="$(find object_detection)/config/params_occupancy_grid.yaml" />
+        <param name="lidar_topic" value="/velodyne_points" />
+        <param name="output_append" value="_occupancy" />
+    </node>
+    <!-- PARKING OCCUPANCY -->
+    <!-- <node pkg="object_detection" type="parking_occupancy" name="parking_occupancy" output="screen">
+        <rosparam command="load" file="$(find object_detection)/config/params_occupancy_grid.yaml" />
+        <param name="map_name" value="$(arg map_name)" />
+    </node> -->
+</launch>

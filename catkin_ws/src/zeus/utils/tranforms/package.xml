@@ -1,0 +1,11 @@
+<package>
+  <name>transforms</name>
+  <version>0.0.0</version>
+  <description>
+    Transform launch files
+  </description>
+  <maintainer email="keenan.burnett@autodrive.utoronto.ca">autoronto</maintainer>
+  <license>BSD</license>
+  <buildtool_depend>catkin</buildtool_depend>
+  <run_depend>message_runtime</run_depend>
+</package>

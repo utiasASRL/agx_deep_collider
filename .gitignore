@@ -8,6 +8,8 @@
 **/build/**
 **/install/**
 **/log/**
+**/logs/**
+**/devel/**
 
 # Byte-compiled / optimized / DLL files
 *.py[cod]

@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="PI"    value="3.141592654"/>
+    <arg name="PI2"  value="1.570796327"/>
+    <arg name="3PI4" value="2.356194490"/>
+    <arg name="PI4"  value="0.785398163"/>
+    <!-- args: x y z yaw pitch roll frame_id child_frame_id period_in_ms -->
+    <node type="static_transform_publisher" pkg="tf" name="broadcaster_base" args="0 -0.70 -1.395 $(arg PI2) 0 0  imu_link base_link 100" />
+    <node type="static_transform_publisher" pkg="tf" name="broadcaster_velodyne" args="0 0 0.45 $(arg PI2) 0 0  imu_link velodyne 100" />
+    <node type="static_transform_publisher" pkg="tf" name="broadcaster_mono" args="0.64 0 -0.45 -$(arg PI2) 0 -$(arg PI2)  velodyne mono_link 100" />
+    <node type="static_transform_publisher" pkg="tf" name="broadcaster_mono2" args="0.64 -0.05 -0.45 -1.554 0 -1.58  velodyne mono_link2 100" />
+    <node type="static_transform_publisher" pkg="tf" name="broadcaster_mono3" args="0.64 -0.25 -0.45 -$(arg 3PI4) 0 -$(arg PI2)  velodyne mono_link3 100" />
+    <node type="static_transform_publisher" pkg="tf" name="broadcaster_mono4" args="0.64 0.25 -0.45  -$(arg PI4) 0 -$(arg PI2)  velodyne mono_link4 100" />
+    <node type="static_transform_publisher" pkg="tf" name="broadcaster_c2" args="0 0 0 $(arg PI) -$(arg PI2) -$(arg PI2)  mono_link c2 100" />
+    <node type="static_transform_publisher" pkg="tf" name="broadcaster_front" args="2.64 0 0 0 0 0  base_link front_link 100" />
+    <node type="static_transform_publisher" pkg="tf" name="broadcaster_middle" args="1.465 0 0 0 0 0  base_link middle_link 100" />
+    <node type="static_transform_publisher" pkg="tf" name="broadcaster_bev" args="0.85 4.2667 0 -$(arg PI2) 0 0 c2 bev_link 100" />
+</launch>
