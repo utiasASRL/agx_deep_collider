@@ -1,5 +1,0 @@
-jackal/jackal_tutorials
-/home/asrl/catkin_ws/devel/.private/jackal_tutorials/cmake.lock /home/asrl/catkin_ws/devel/./cmake.lock
-/home/asrl/catkin_ws/devel/.private/jackal_tutorials/lib/pkgconfig/jackal_tutorials.pc /home/asrl/catkin_ws/devel/lib/pkgconfig/jackal_tutorials.pc
-/home/asrl/catkin_ws/devel/.private/jackal_tutorials/share/jackal_tutorials/cmake/jackal_tutorialsConfig.cmake /home/asrl/catkin_ws/devel/share/jackal_tutorials/cmake/jackal_tutorialsConfig.cmake
-/home/asrl/catkin_ws/devel/.private/jackal_tutorials/share/jackal_tutorials/cmake/jackal_tutorialsConfig-version.cmake /home/asrl/catkin_ws/devel/share/jackal_tutorials/cmake/jackal_tutorialsConfig-version.cmake

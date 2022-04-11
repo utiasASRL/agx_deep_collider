@@ -80,6 +80,7 @@ class CADRL(Policy):
         self.epsilon = epsilon
 
     def build_action_space(self, v_pref):
+        print('v_pref: {}'.format(v_pref))
         """
         Action space consists of 25 uniformly sampled actions in permitted range and 25 randomly sampled actions.
         """
@@ -99,6 +100,29 @@ class CADRL(Policy):
 
         self.speeds = speeds
         self.rotations = rotations
+        self.action_space = action_space
+
+    def rebuild_action_space(self, v_pref, v_curr, w_curr, delta_v_max, delta_w_max, wmax, dt):
+        if self.kinematics == 'holonomic':
+            raise NotImplementedError
+        min_v = max(0.01, v_curr - delta_v_max)
+        max_v = min(v_pref, v_curr + delta_v_max)
+        speeds = np.linspace(min_v, max_v, self.speed_samples)
+        min_w = max(-wmax, w_curr - delta_w_max)
+        max_w = min(wmax, w_curr + delta_w_max)
+        angs = np.linspace(min_w, max_w, self.rotation_samples)
+        rotations = angs * dt
+        """
+        Action space consists of 25 uniformly sampled actions in permitted range and 25 randomly sampled actions.
+        """
+        action_space = [ActionRot(0, 0)]
+        for rotation, speed in itertools.product(rotations, speeds):
+            action_space.append(ActionRot(speed, rotation))
+
+        self.speeds = speeds
+        self.rotations = rotations
+        print('speeds: {}'.format(speeds))
+        print('rotations: {}'.format(rotations))
         self.action_space = action_space
 
     def propagate(self, state, action):

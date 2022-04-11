@@ -9,6 +9,7 @@ from crowd_nav.utils.explorer import Explorer
 from crowd_nav.policy.policy_factory import policy_factory
 from crowd_sim.envs.utils.robot import Robot
 from crowd_sim.envs.policy.orca import ORCA
+import pickle
 
 
 def main():
@@ -85,13 +86,19 @@ def main():
         logging.info('ORCA agent buffer: %f', robot.policy.safety_space)
 
     policy.set_env(env)
+    robot.policy.kinematics = 'nonholonomic'
+    robot.kinematics = 'nonholonomic'
     robot.print_info()
+
     if args.visualize:
         ob = env.reset(args.phase, args.test_case)
         done = False
         last_pos = np.array(robot.get_position())
         while not done:
+            logging.info(robot.theta)
             action = robot.act(ob)
+            logging.info(action)
+
             ob, _, done, info = env.step(action)
             current_pos = np.array(robot.get_position())
             logging.debug('Speed: %.2f', np.linalg.norm(current_pos - last_pos) / robot.time_step)

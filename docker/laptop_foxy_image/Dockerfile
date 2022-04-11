@@ -357,6 +357,8 @@ RUN apt-get install ros-noetic-jsk-rviz-plugins -y --no-install-recommends
 
 RUN pip3 install  catkin_tools
 
+RUN apt-get install ros-noetic-geodesy -y --no-install-recommends
+
 #
 # User info
 # 

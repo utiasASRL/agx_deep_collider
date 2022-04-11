@@ -83,8 +83,15 @@ class Agent(object):
         self.px = position[0]
         self.py = position[1]
 
+    def set_orientation(self, yaw):
+        self.theta = yaw
+
     def get_goal_position(self):
         return self.gx, self.gy
+
+    def set_goal_position(self, goal):
+        self.gx = goal[0]
+        self.gy = goal[1]
 
     def get_velocity(self):
         return self.vx, self.vy
