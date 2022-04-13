@@ -10,6 +10,7 @@
 **/log/**
 **/logs/**
 **/devel/**
+**/.catkin_tools/**
 
 # Byte-compiled / optimized / DLL files
 *.py[cod]

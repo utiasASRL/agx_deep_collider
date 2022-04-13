@@ -13,7 +13,6 @@ find_package(catkin REQUIRED COMPONENTS
   tf2_geometry_msgs
   tf2_ros
   tf
-  geodesy
   zeus_pcl
   roslint
 )
@@ -27,7 +26,7 @@ find_package(PkgConfig REQUIRED)
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES kalman_lib
-  CATKIN_DEPENDS geometry_msgs roscpp std_msgs tf geodesy tf2_geometry_msgs
+  CATKIN_DEPENDS geometry_msgs roscpp std_msgs tf tf2_geometry_msgs
 )
 
 ###########

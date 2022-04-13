@@ -2,7 +2,7 @@ import logging
 import gym
 import matplotlib.lines as mlines
 import numpy as np
-import rvo2
+# import rvo2
 from matplotlib import patches
 from numpy.linalg import norm
 from crowd_sim.envs.utils.human import Human
@@ -218,7 +218,7 @@ class CrowdSim(gym.Env):
         if not self.robot.reached_destination():
             raise ValueError('Episode is not done yet')
         params = (10, 10, 5, 5)
-        sim = rvo2.PyRVOSimulator(self.time_step, *params, 0.3, 1)
+        # sim = rvo2.PyRVOSimulator(self.time_step, *params, 0.3, 1)
         sim.addAgent(self.robot.get_position(), *params, self.robot.radius, self.robot.v_pref,
                      self.robot.get_velocity())
         for human in self.humans:

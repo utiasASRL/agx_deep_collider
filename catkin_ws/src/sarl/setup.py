@@ -3,12 +3,12 @@ from setuptools import setup
 
 setup(
     name='crowdnav',
-    version='0.1.1',
+    version='0.1.3',
     packages=[
         'simple_nav',
         'simple_nav.policy',
         'simple_nav.utils',
-        # 'simpe_nav.configs',
+        'simple_nav.configs',
         'crowd_nav',
         'crowd_nav.configs',
         'crowd_nav.policy',

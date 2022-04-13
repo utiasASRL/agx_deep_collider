@@ -1,5 +1,5 @@
 import numpy as np
-import rvo2
+# import rvo2
 from crowd_sim.envs.policy.policy import Policy
 from crowd_sim.envs.utils.action import ActionXY
 
@@ -96,7 +96,7 @@ class ORCA(Policy):
             del self.sim
             self.sim = None
         if self.sim is None:
-            self.sim = rvo2.PyRVOSimulator(self.time_step, *params, self.radius, self.max_speed)
+            # self.sim = rvo2.PyRVOSimulator(self.time_step, *params, self.radius, self.max_speed)
             self.sim.addAgent(self_state.position, *params, self_state.radius + 0.01 + self.safety_space,
                               self_state.v_pref, self_state.velocity)
             for human_state in state.human_states:

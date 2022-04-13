@@ -1,7 +1,8 @@
 import numpy as np
 from crowd_sim.envs.policy.policy import Policy
 from crowd_sim.envs.utils.action import ActionRot
-import utils.PythonRobotics.dynamic_window_approach as PRdwa
+import simple_nav.utils.PythonRobotics.dynamic_window_approach as PRdwa
+from simple_nav.utils.PythonRobotics.dynamic_window_approach import RobotType
 
 class DynamicWindowApproach(Policy):
     """
@@ -18,13 +19,35 @@ class DynamicWindowApproach(Policy):
         # self.safety_space = 0
         # self.neighbor_dist = 10
         # self.max_neighbors = 10
-        self.time_horizon = 5
+        self.time_horizon = 2.5
         self.radius = 0.3
-        self.max_speed = 1.5
+        self.max_speed = 0.8
         self.sim_config = None
 
     def configure(self, config):
-        assert True
+        pass
+
+    def configure_dwa(self, config, section):
+        self.sim_config = PRdwa.Config()
+        self.radius = config.getfloat(section, 'radius')
+        self.max_speed = config.getfloat(section, 'v_pref')
+        self.sim_config.max_speed = self.max_speed
+        self.sim_config.min_speed = -self.max_speed
+        self.sim_config.max_accel = config.getfloat(section, 'acc_max')  # [m/ss]
+        self.sim_config.max_delta_yaw_rate = config.getfloat(section, 'ang_acc_max')  # [rad/ss]
+        self.sim_config.v_resolution = 0.05  # [m/s]
+        self.sim_config.yaw_rate_resolution = 1 * np.pi / 180.0  # [rad/s]
+        self.sim_config.dt = self.time_step  # [s] Time tick for motion prediction
+        self.sim_config.predict_time = self.time_horizon  # [s]
+        self.sim_config.to_goal_cost_gain = 2
+        self.sim_config.speed_cost_gain = 2.0
+        self.sim_config.obstacle_cost_gain = 15.5
+        self.sim_config.robot_stuck_flag_cons = 0.01  # constant to prevent robot stucked
+        self.sim_config.robot_type = RobotType.circle
+        self.sim_config.robot_radius = self.radius  # [m] for collision check
+        # self.sim_config.robot_width = 0.5  # [m] for collision check
+        # self.sim_config.robot_length = 1.2  # [m] for collision check
+        self.sim_config.ob = np.zeros((1, 2))
 
     def predict(self, state):
         """
@@ -42,19 +65,19 @@ class DynamicWindowApproach(Policy):
         if self.sim_config is None:
             self.sim_config = PRdwa.Config()
             self.sim_config.max_speed = self.max_speed
-            # self.sim_config.min_speed = -0.5  # [m/s]
+            self.sim_config.min_speed = -self.max_speed
             # self.sim_config.max_yaw_rate = 40.0 * np.pi / 180.0  # [rad/s]
             self.sim_config.max_accel = 0.5  # [m/ss]
-            # self.sim_config.max_delta_yaw_rate = 40.0 * np.pi / 180.0  # [rad/ss]
-            # self.sim_config.v_resolution = 0.01  # [m/s]
-            # self.sim_config.yaw_rate_resolution = 0.1 * np.pi / 180.0  # [rad/s]
+            self.sim_config.max_delta_yaw_rate = 45.0 * np.pi / 180.0  # [rad/ss]
+            self.sim_config.v_resolution = 0.05  # [m/s]
+            self.sim_config.yaw_rate_resolution = 1 * np.pi / 180.0  # [rad/s]
             self.sim_config.dt = self.time_step  # [s] Time tick for motion prediction
             self.sim_config.predict_time = self.time_horizon  # [s]
-            # self.sim_config.to_goal_cost_gain = 2.5
-            # self.sim_config.speed_cost_gain = 0.5
-            # self.sim_config.obstacle_cost_gain = 1.0
-            self.sim_config.robot_stuck_flag_cons = 0.0001  # constant to prevent robot stucked
-            # self.sim_config.robot_type = RobotType.circle
+            self.sim_config.to_goal_cost_gain = 2
+            self.sim_config.speed_cost_gain = 2.0
+            self.sim_config.obstacle_cost_gain = 15.5
+            self.sim_config.robot_stuck_flag_cons = 0.01  # constant to prevent robot stucked
+            self.sim_config.robot_type = RobotType.circle
             self.sim_config.robot_radius = self.radius  # [m] for collision check
             # self.sim_config.robot_width = 0.5  # [m] for collision check
             # self.sim_config.robot_length = 1.2  # [m] for collision check

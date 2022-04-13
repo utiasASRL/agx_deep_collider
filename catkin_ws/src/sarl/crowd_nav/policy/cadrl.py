@@ -102,7 +102,7 @@ class CADRL(Policy):
         self.rotations = rotations
         self.action_space = action_space
 
-    def rebuild_action_space(self, v_pref, v_curr, w_curr, delta_v_max, delta_w_max, wmax, dt):
+    def rebuild_action_space(self, v_pref, v_curr, w_curr, delta_v_max, delta_w_max, wmax, dt, debug=False):
         if self.kinematics == 'holonomic':
             raise NotImplementedError
         min_v = max(0.01, v_curr - delta_v_max)
@@ -121,8 +121,9 @@ class CADRL(Policy):
 
         self.speeds = speeds
         self.rotations = rotations
-        print('speeds: {}'.format(speeds))
-        print('rotations: {}'.format(rotations))
+        if debug:
+            print('speeds: {}'.format(speeds))
+            print('rotations: {}'.format(rotations))
         self.action_space = action_space
 
     def propagate(self, state, action):
