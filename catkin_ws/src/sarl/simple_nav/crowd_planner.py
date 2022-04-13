@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+import time
 import rospy
 import configparser
 import numpy as np
@@ -22,7 +23,7 @@ class CrowdNavNode:
     def __init__(self):
         rospy.init_node('crowd_planner')
         rospy.Subscriber('/Object/Detections3D', Detections3D, self.callback)
-        rospy.Subscriber('/move_base/current_goal', PoseStamped, self.goal_callback)
+        rospy.Subscriber('/move_base_simple/goal', PoseStamped, self.goal_callback)
         rospy.Subscriber('/jackal_velocity_controller/odom', Odometry, self.odom_callback)
         self.cmd_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=1)
         model_weights = 'model/resumed_rl_model.pth'
@@ -123,6 +124,7 @@ class CrowdNavNode:
 
 if __name__ == '__main__':
     sarl = CrowdNavNode()
+    time.sleep(1)
     rate = rospy.Rate(20)
     while not rospy.is_shutdown():
         sarl.update_transforms()
