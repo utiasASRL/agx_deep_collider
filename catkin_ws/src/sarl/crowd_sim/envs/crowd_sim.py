@@ -98,8 +98,11 @@ class CrowdSim(gym.Env):
                 self.humans.append(self.generate_square_crossing_human())
         elif rule == 'circle_crossing':
             self.humans = []
-            for i in range(human_num):
+            for i in range(human_num - 1):
                 self.humans.append(self.generate_circle_crossing_human())
+            human = Human(self.config, 'humans')
+            human.set(0, 0, 0, 0, 0, 0, 0, v_pref=0)
+            self.humans.append(human)
         elif rule == 'mixed':
             # mix different raining simulation with certain distribution
             static_human_num = {0: 0.05, 1: 0.2, 2: 0.2, 3: 0.3, 4: 0.1, 5: 0.15}
@@ -271,7 +274,7 @@ class CrowdSim(gym.Env):
         else:
             counter_offset = {'train': self.case_capacity['val'] + self.case_capacity['test'],
                               'val': 0, 'test': self.case_capacity['val']}
-            self.robot.set(0, -self.circle_radius, 0, self.circle_radius, 0, 0, -3 * np.pi / 4)
+            self.robot.set(0, -self.circle_radius, 0, self.circle_radius, 0, 0, np.pi / 2)
             if self.case_counter[phase] >= 0:
                 np.random.seed(counter_offset[phase] + self.case_counter[phase])
                 if phase in ['train', 'val']:

@@ -37,6 +37,42 @@ def quaternionToRot(qin):
         2 * np.matmul(xi, xi.transpose()) - 2 * eta * carrot(xi)
     return C
 
+def rotToQuaternion(C):
+    """Converts a rotation matrix to a quaternion
+    Note that the space of unit-length quaternions is a double-cover of SO(3)
+    which means that, C maps to +/- q, so q --> C --> +/- q
+    Args:
+        C (np.ndarray) (3,3) rotation matrix
+    Returns:
+        q (np.ndarray) (4,1) [qx, qy, qz, qw] quaternion
+    """
+    eta = 0.5 * np.sqrt((1 + np.trace(C)))
+    if np.abs(eta) < 1e-14:
+        eta = 0
+        xi = np.sqrt(np.diag(0.5 * (C + np.identity(3))))
+        q = np.array([xi[0], xi[1], xi[2], eta]).reshape(4, 1)
+    else:
+        phi = wrapto2pi(2 * np.arccos(max(min(eta, 1.0), -1.0)))
+        eta = np.cos(phi / 2)
+        xi_cross = (C.T - C) / (4 * eta)
+        q = np.array([xi_cross[2, 1], xi_cross[0, 2], xi_cross[1, 0], eta]).reshape(4, 1)
+    return q
+
+def roll(r):
+    return np.array([[1, 0, 0], [0, np.cos(r), np.sin(r)], [0, -np.sin(r), np.cos(r)]], dtype=np.float64)
+
+
+def pitch(p):
+    return np.array([[np.cos(p), 0, -np.sin(p)], [0, 1, 0], [np.sin(p), 0, np.cos(p)]], dtype=np.float64)
+
+
+def yaw(y):
+    return np.array([[np.cos(y), np.sin(y), 0], [-np.sin(y), np.cos(y), 0], [0, 0, 1]], dtype=np.float64)
+
+
+def yawPitchRollToRot(y, p, r):
+    return roll(r) @ pitch(p) @ yaw(y)
+
 def rotToYawPitchRoll(C):
     i = 2
     j = 1

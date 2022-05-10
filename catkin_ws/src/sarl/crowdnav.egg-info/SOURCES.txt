@@ -41,6 +41,7 @@ simple_nav/__init__.py
 simple_nav/crowd_planner.py
 simple_nav/mutils.py
 simple_nav/simple_test.py
+simple_nav/test.py
 simple_nav/policy/__init__.py
 simple_nav/policy/dwa.py
 simple_nav/policy/policy_factory.py

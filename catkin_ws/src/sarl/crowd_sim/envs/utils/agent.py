@@ -26,6 +26,7 @@ class Agent(object):
         self.vx = None
         self.vy = None
         self.theta = None
+        self.omega = None
         self.time_step = None
 
     def print_info(self):
@@ -74,7 +75,7 @@ class Agent(object):
         return ObservableState(next_px, next_py, next_vx, next_vy, self.radius)
 
     def get_full_state(self):
-        return FullState(self.px, self.py, self.vx, self.vy, self.radius, self.gx, self.gy, self.v_pref, self.theta)
+        return FullState(self.px, self.py, self.vx, self.vy, self.radius, self.gx, self.gy, self.v_pref, self.theta, self.omega)
 
     def get_position(self):
         return self.px, self.py
@@ -99,6 +100,12 @@ class Agent(object):
     def set_velocity(self, velocity):
         self.vx = velocity[0]
         self.vy = velocity[1]
+
+    def get_ang_velocity(self):
+        return self.omega
+
+    def set_ang_velocity(self, angular_velocity):
+        self.omega = angular_velocity
 
     @abc.abstractmethod
     def act(self, ob):

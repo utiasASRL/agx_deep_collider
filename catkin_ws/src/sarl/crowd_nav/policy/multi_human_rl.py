@@ -59,7 +59,6 @@ class MultiHumanRL(CADRL):
 
         if self.phase == 'train':
             self.last_state = self.transform(state)
-
         return max_action
 
     def compute_reward(self, nav, humans):

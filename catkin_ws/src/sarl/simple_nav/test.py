@@ -5,20 +5,19 @@ import os
 import torch
 import numpy as np
 import gym
-from simple_nav.utils.explorer import ExplorerPlus
-from policy.policy_factory import policy_factory
+from crowd_nav.utils.explorer import Explorer
+from crowd_nav.policy.policy_factory import policy_factory
 from crowd_sim.envs.utils.robot import Robot
 from crowd_sim.envs.policy.orca import ORCA
+from policy.policy_factory import policy_factory
+import pickle
 
-# such that animations work properly in Pycharm.
-# import matplotlib
-# matplotlib.use("TkAgg")
 
 def main():
     parser = argparse.ArgumentParser('Parse configuration file')
     parser.add_argument('--env_config', type=str, default='configs/env.config')
     parser.add_argument('--policy_config', type=str, default='configs/policy.config')
-    parser.add_argument('--policy', type=str, default=None)
+    parser.add_argument('--policy', type=str, default='orca')
     parser.add_argument('--model_dir', type=str, default=None)
     parser.add_argument('--il', default=False, action='store_true')
     parser.add_argument('--gpu', default=False, action='store_true')
@@ -27,7 +26,6 @@ def main():
     parser.add_argument('--test_case', type=int, default=None)
     parser.add_argument('--square', default=False, action='store_true')
     parser.add_argument('--circle', default=False, action='store_true')
-    parser.add_argument('--hallway', default=False, action='store_true')
     parser.add_argument('--video_file', type=str, default=None)
     parser.add_argument('--traj', default=False, action='store_true')
     args = parser.parse_args()
@@ -52,27 +50,8 @@ def main():
     device = torch.device("cuda:0" if torch.cuda.is_available() and args.gpu else "cpu")
     logging.info('Using device: %s', device)
 
-    # configure environment
-    env_config = configparser.RawConfigParser()
-    env_config.read(env_config_file)
-    env = gym.make('CrowdSimPlus-v0')
-    print(args.env_config)
-    print(args.policy_config)
-    env.configure(env_config)
-    if args.square:
-        env.test_sim = 'square_crossing'
-    elif args.circle:
-        env.test_sim = 'circle_crossing'
-    elif args.hallway:
-        env.test_sim = 'hallway'
-    else:
-        env.test_sim = 'hallway'
-
     # configure policy
-    if args.policy is not None:
-        policy = policy_factory[args.policy]()
-    else:
-        policy = policy_factory[env_config.get('robot', 'policy')]()
+    policy = policy_factory[args.policy]()
     policy_config = configparser.RawConfigParser()
     policy_config.read(policy_config_file)
     policy.configure(policy_config)
@@ -81,16 +60,20 @@ def main():
             parser.error('Trainable policy must be specified with a model weights directory')
         policy.get_model().load_state_dict(torch.load(model_weights))
 
-
-    # make robot and set robot in environment
+    # configure environment
+    env_config = configparser.RawConfigParser()
+    env_config.read(env_config_file)
+    env = gym.make('CrowdSim-v0')
+    env.configure(env_config)
+    if args.square:
+        env.test_sim = 'square_crossing'
+    if args.circle:
+        env.test_sim = 'circle_crossing'
     robot = Robot(env_config, 'robot')
     robot.set_policy(policy)
     env.set_robot(robot)
+    explorer = Explorer(env, robot, device, gamma=0.9)
 
-    # make explorer
-    explorer = ExplorerPlus(env, robot, device, gamma=0.9)
-
-    # set policy details
     policy.set_phase(args.phase)
     policy.set_device(device)
     # set safety space for ORCA in non-cooperative simulation
@@ -107,33 +90,30 @@ def main():
         policy.time_step = env_config.getfloat('env', 'time_step')
         policy.configure_dwa(env_config, 'robot')
 
-
-    # set environment in policy
     policy.set_env(env)
+    robot.policy.kinematics = 'nonholonomic'
+    robot.kinematics = 'nonholonomic'
     robot.print_info()
+
     if args.visualize:
-        if args.test_case is None:
-            viz_test_case = np.random.choice(env.case_capacity[args.phase])
-        else:
-            viz_test_case = args.test_case
-        logging.info('About to start visualizing phase: %s, test case: %i.', args.phase, viz_test_case)
-        ob = env.reset(args.phase, viz_test_case)
+        ob = env.reset(args.phase, args.test_case)
         done = False
         last_pos = np.array(robot.get_position())
         while not done:
+            logging.info(robot.theta)
             action = robot.act(ob)
+            logging.info(action)
+
             ob, _, done, info = env.step(action)
             current_pos = np.array(robot.get_position())
-            logging.info('Displacement: %.2f', np.linalg.norm(current_pos - last_pos))
+            logging.debug('Speed: %.2f', np.linalg.norm(current_pos - last_pos) / robot.time_step)
             last_pos = current_pos
-
-        logging.info('It takes %.2f seconds to finish. Final status is %s', env.global_time, info)
         if args.traj:
             env.render('traj', args.video_file)
         else:
             env.render('video', args.video_file)
 
-
+        logging.info('It takes %.2f seconds to finish. Final status is %s', env.global_time, info)
         if robot.visible and info == 'reach goal':
             human_times = env.get_human_times()
             logging.info('Average time for humans to reach goal: %.2f', sum(human_times) / len(human_times))

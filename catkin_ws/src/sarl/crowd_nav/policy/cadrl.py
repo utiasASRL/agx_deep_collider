@@ -105,17 +105,30 @@ class CADRL(Policy):
     def rebuild_action_space(self, v_pref, v_curr, w_curr, delta_v_max, delta_w_max, wmax, dt, debug=False):
         if self.kinematics == 'holonomic':
             raise NotImplementedError
-        min_v = max(0.01, v_curr - delta_v_max)
+        min_v = v_curr - delta_v_max
+        if min_v <= 0.01:
+            min_v = 0.01
+        if min_v >= v_pref - delta_v_max:
+            min_v = v_pref - delta_v_max
+
         max_v = min(v_pref, v_curr + delta_v_max)
         speeds = np.linspace(min_v, max_v, self.speed_samples)
-        min_w = max(-wmax, w_curr - delta_w_max)
-        max_w = min(wmax, w_curr + delta_w_max)
+        # wmax2 = wmax * (1 - 0.5 * abs(v_curr) / v_pref)
+        wmax2 = wmax
+        max_w = min(wmax2, w_curr + delta_w_max)
+        min_w = max(-wmax2, w_curr - delta_w_max)
+        if min_w >= wmax2 - delta_w_max:
+            min_w = wmax2 - delta_w_max
         angs = np.linspace(min_w, max_w, self.rotation_samples)
+
+        speeds = np.array([0.1, 0.20, 0.30, 0.40, 0.50, 0.60])
+        angs = np.array([-45, -40, -35, -30, -25, -20, -15, -10, -5, 0, 5, 10, 15, 20, 25, 30, 35, 40, 45]) * np.pi / 180
+
         rotations = angs * dt
         """
         Action space consists of 25 uniformly sampled actions in permitted range and 25 randomly sampled actions.
         """
-        action_space = [ActionRot(0, 0)]
+        action_space = []
         for rotation, speed in itertools.product(rotations, speeds):
             action_space.append(ActionRot(speed, rotation))
 

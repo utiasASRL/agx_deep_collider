@@ -25,7 +25,7 @@ void convertToRosMessage(const std::vector<Object> &object_list, zeus_msgs::Dete
     }
 }
 
-void KalmanTrackerNode::visualize(const std::vector<Object> &object_list, ros::Time stamp) {
+void KalmanTrackerNode::visualize(const std::vector<Object> &object_list, ros::Time stamp, float yaw) {
     visualization_msgs::MarkerArray marray;
     
     for (int i = 0; i < (int)object_list.size(); i++) {
@@ -45,10 +45,13 @@ void KalmanTrackerNode::visualize(const std::vector<Object> &object_list, ros::T
         marker.color.r = 0;
         marker.color.g = 1;
         marker.color.b = 0;
+        // Orientation
+        float theta = object_list[i].yaw + yaw;
+
         marker.pose.orientation.x = 0.0;
         marker.pose.orientation.y = 0.0;
-        marker.pose.orientation.z = 0.0;
-        marker.pose.orientation.w = 1.0;
+        marker.pose.orientation.z = sin(theta / 2);
+        marker.pose.orientation.w = cos(theta / 2);
         marker.lifetime = ros::Duration(1.0);
         marray.markers.push_back(marker);
 
@@ -108,7 +111,7 @@ void KalmanTrackerNode::callback(const zeus_msgs::Detections3D::ConstPtr & det) 
     zeus_tf::rot_to_rpy(Tmv.block(0, 0, 3, 3), rpy);
     convertToRosMessage(object_list, outputDetections, (float)rpy[2]);
     det_pub_.publish(outputDetections);
-    visualize(object_list, det->header.stamp);
+    visualize(object_list, det->header.stamp, (float)rpy[2]);
     auto stop = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = stop - start;
     ROS_DEBUG_STREAM("[OBJ] KALMAN TRACKER TIME: " << elapsed.count());

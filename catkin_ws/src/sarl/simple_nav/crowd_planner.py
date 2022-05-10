@@ -11,7 +11,7 @@ from geometry_msgs.msg import PoseStamped, Twist
 from nav_msgs.msg import Odometry
 from simple_nav.policy.policy_factory import policy_factory
 from crowd_sim.envs.utils.robot import Robot
-from crowd_sim.envs.policy.orca import ORCA
+# from crowd_sim.envs.policy.orca import ORCA
 from crowd_sim.envs.utils.state import ObservableState, JointState
 from zeus_msgs.msg import Detections3D, BoundingBox3D
 from mutils import *
@@ -22,7 +22,8 @@ class CrowdNavNode:
 
     def __init__(self):
         rospy.init_node('crowd_planner')
-        rospy.Subscriber('/Object/Detections3D', Detections3D, self.callback)
+        rospy.Subscriber('/Object/Detections3D', Detections3D, self.perception_callback)
+        # rospy.Subscriber('/move_base/current_goal', PoseStamped, self.goal_callback)
         rospy.Subscriber('/move_base_simple/goal', PoseStamped, self.goal_callback)
         rospy.Subscriber('/jackal_velocity_controller/odom', Odometry, self.odom_callback)
         self.cmd_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=1)
@@ -72,32 +73,60 @@ class CrowdNavNode:
         self.dwmax = self.ang_acc_max * self.policy.time_step
         self.inflate_radius = env_config.getfloat('robot', 'inflate_radius')
         self.min_radius = env_config.getfloat('robot', 'min_radius')
+        self.goal_tolerance = env_config.getfloat('robot', 'goal_tolerance')
+        self.ignore_perception = env_config.getboolean('robot', 'ignore_perception')
 
-    def callback(self, msg):
+    def perception_callback(self, msg):
+        if self.ignore_perception:
+            self.ob = [ObservableState(0, 0, 0, 0, 0.3)]
+        else:
+            self.ob = []
+            # print('robot: {}'.format(self.pos[:2]))
+            for bb in msg.bbs:
+                if np.linalg.norm(np.array(self.pos[:2]) - np.array([bb.x, bb.y])) > 4.0:
+                    continue
+                r = (bb.l + bb.w) / 2 + self.inflate_radius
+                if r < self.min_radius:
+                    r = self.min_radius
+                obs = ObservableState(bb.x, bb.y, bb.x_dot, bb.y_dot, r)
+                # if np.linalg.norm(np.array(self.pos[:2]) - np.array([bb.x, bb.y])) < 1.5:
+                #     print('object: {}'.format([bb.x, bb.y]))
+                    # print(bb.x, bb.y, bb.x_dot, bb.y_dot, r)
+                self.ob.append(obs)
+        if len(self.ob) == 0 and self.policy_name == 'sarl':
+            self.ob = [ObservableState(0, 0, 0, 0, 0.3)]
+
+
+    def control(self):
         gx, gy = self.robot.get_goal_position()
         if gx is None or gy is None:
             return
-        vx = np.cos(self.yaw) * self.body_vel
-        vy = np.sin(self.yaw) * self.body_vel
-        self.robot.set_velocity([vx, vy])
+        px, py, _ = self.pos
+        if np.sqrt((px - gx)**2 + (py - gy)**2) < self.goal_tolerance:
+            if self.debug:
+                print('goal reached!')
+            self.robot.set_goal_position([None, None])
+            tmsg = Twist()
+            tmsg.linear.x = 0
+            tmsg.angular.z = 0
+            self.cmd_pub.publish(tmsg)
+            return
         if self.policy_name == 'sarl':
             self.robot.policy.rebuild_action_space(self.policy.v_pref, self.body_vel,
                 self.ang_vel, self.dvmax, self.dwmax, self.wmax,
                 self.policy.time_step, self.debug)
-        ob = []
-        for bb in msg.bbs:
-            r = (bb.l + bb.w) / 2 + self.inflate_radius
-            if r < self.min_radius:
-                r = self.min_radius
-            obs = ObservableState(bb.x, bb.y, bb.x_dot, bb.y_dot, r)
-            ob.append(obs)
-        action = self.robot.act(ob)
+        if self.debug:
+            print('X: {} Y: {} YAW: {} V: {} W: {}'.format(px, py, self.yaw,
+                self.body_vel, self.ang_vel))
+
+        action = self.robot.act(self.ob)
         if self.debug:
             print(action)
         tmsg = Twist()
         tmsg.linear.x = action.v
         tmsg.angular.z = action.r / self.policy.time_step
         self.cmd_pub.publish(tmsg)
+
 
     def goal_callback(self, msg):
         if self.debug:
@@ -107,6 +136,10 @@ class CrowdNavNode:
     def odom_callback(self, msg):
         self.body_vel = msg.twist.twist.linear.x
         self.ang_vel = msg.twist.twist.angular.z
+        vx = np.cos(self.yaw) * self.body_vel
+        vy = np.sin(self.yaw) * self.body_vel
+        self.robot.set_velocity([vx, vy])
+        self.robot.set_ang_velocity(self.ang_vel)
 
     def update_transforms(self):
         try:
@@ -118,6 +151,9 @@ class CrowdNavNode:
             self.yaw *= -1
             self.robot.set_position(self.pos)
             self.robot.set_orientation(self.yaw)
+            vx = np.cos(self.yaw) * self.body_vel
+            vy = np.sin(self.yaw) * self.body_vel
+            self.robot.set_velocity([vx, vy])
         except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
             return
 
@@ -125,7 +161,8 @@ class CrowdNavNode:
 if __name__ == '__main__':
     sarl = CrowdNavNode()
     time.sleep(1)
-    rate = rospy.Rate(20)
+    rate = rospy.Rate(1 / sarl.policy.time_step)
     while not rospy.is_shutdown():
         sarl.update_transforms()
+        sarl.control()
         rate.sleep()

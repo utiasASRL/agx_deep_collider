@@ -77,7 +77,7 @@ class KalmanTrackerNode {
     */
     void initialize_transforms();
 
-    void visualize(const std::vector<Object> &object_list, ros::Time stamp);
+    void visualize(const std::vector<Object> &object_list, ros::Time stamp, float yaw);
 
  private:
     Eigen::Matrix4d Tmv = Eigen::Matrix4d::Identity();
