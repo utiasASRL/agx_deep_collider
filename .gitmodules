@@ -1,6 +1,12 @@
 [submodule "eloquent_ws"]
 	path = eloquent_ws
 	url = https://github.com/utiasASRL/onboard_deep_sogm
+[submodule "catkin_ws/src/vox_msgs"]
+	path = catkin_ws/src/vox_msgs
+	url = https://github.com/utiasASRL/vox_msgs.git
+[submodule "catkin_ws/src/point_slam"]
+	path = catkin_ws/src/point_slam
+	url = https://github.com/utiasASRL/point_slam.git
 [submodule "catkin_ws/src/teb_risk_map_planner"]
-	path = catkin_ws/src/teb_local_planner
+	path = catkin_ws/src/teb_risk_map_planner
 	url = https://github.com/utiasASRL/teb_risk_map_planner.git
