@@ -1,2 +1,0 @@
-std_msgs/Header header
-std_msgs/Float32MultiArray lane_output_message
