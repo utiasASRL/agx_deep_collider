@@ -10,3 +10,6 @@
 [submodule "catkin_ws/src/teb_risk_map_planner"]
 	path = catkin_ws/src/teb_risk_map_planner
 	url = https://github.com/utiasASRL/teb_risk_map_planner.git
+[submodule "catkin_ws/src/follow_waypoints"]
+	path = catkin_ws/src/follow_waypoints
+	url = https://github.com/danielsnider/follow_waypoints
