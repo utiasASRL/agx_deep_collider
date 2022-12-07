@@ -1,0 +1,81 @@
+<?xml version="1.0"?>
+
+<!--
+This URDF requires the following environment variables to be enabled in
+/etc/ros/setup.bash:
+
+export JACKAL_ARK_ENCLOSURE=1
+
+-->
+
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+
+<!-- Add the sensor tower -->
+
+  <link name="tower_mount_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://tor59_jackal/meshes/tor59_tower.stl"/>
+      </geometry>
+      <material name="dark_grey" />
+    </visual>
+    <collision>
+      <origin xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://tor59_jackal/meshes/tor59_tower.stl"/>
+      </geometry>
+    </collision>
+  </link>
+  
+  <joint name="tower_mount_joint" type="fixed">
+    <parent link="mid_mount" />
+    <child link="tower_mount_link" />
+    <origin xyz="0.02 0 0.07" />
+  </joint>
+  
+<!-- Add the Wibotic receiver -->
+  
+  <link name="wibotic_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://tor59_jackal/meshes/wibotic_rx.stl"/>
+      </geometry>
+      <material name="dark_grey" />
+    </visual>
+    <collision>
+      <origin xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://tor59_jackal/meshes/wibotic_rx.stl"/>
+      </geometry>
+    </collision>
+  </link>
+  
+  <joint name="wibotic_joint" type="fixed">
+    <parent link="base_link" />
+    <child link="wibotic_link" />
+    <origin xyz="0.255 0 0" rpy="-1.5708 -1.5708 0" />
+  </joint>
+  
+<!-- link the sensor origins -->
+  
+  <link name="velodyne" />
+  
+  <joint name="velodyne_sensor_joint" type="fixed">
+    <parent link="tower_mount_link" />
+    <child link="velodyne" />
+    <origin xyz="0 0 0.34" rpy="0 0 0" />
+  </joint>
+
+  <link name="camera_link" />
+  
+  <joint name="camera_joint" type="fixed">
+    <parent link="tower_mount_link" />
+    <child link="camera_link" />
+    <origin xyz="0.19 0 0.24" rpy="0 0 0" />
+  </joint>
+  
+  
+
+</robot>
