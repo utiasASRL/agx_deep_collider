@@ -47,7 +47,7 @@ class FollowPath(State):
         State.__init__(self, outcomes=['success'], input_keys=['waypoints'])
         self.frame_id = rospy.get_param('~goal_frame_id','map')
         self.odom_frame_id = rospy.get_param('~odom_frame_id','odom')
-        self.base_frame_id = rospy.get_param('~base_frame_id','base_footprint')
+        self.base_frame_id = rospy.get_param('~base_frame_id','base_link')
         self.duration = rospy.get_param('~wait_duration', 0.0)
         # Get a move_base action client
         self.client = actionlib.SimpleActionClient('move_base', MoveBaseAction)
@@ -57,7 +57,7 @@ class FollowPath(State):
         rospy.loginfo('Starting a tf listner.')
         self.tf = TransformListener()
         self.listener = tf.TransformListener()
-        self.distance_tolerance = rospy.get_param('waypoint_distance_tolerance', 0.0)
+        self.distance_tolerance = rospy.get_param('~waypoint_distance_tolerance', 1.0)
 
     def execute(self, userdata):
         global waypoints
@@ -85,8 +85,10 @@ class FollowPath(State):
                 distance = 10
                 while(distance > self.distance_tolerance):
                     now = rospy.Time.now()
-                    self.listener.waitForTransform(self.odom_frame_id, self.base_frame_id, now, rospy.Duration(4.0))
-                    trans,rot = self.listener.lookupTransform(self.odom_frame_id,self.base_frame_id, now)
+                    # self.listener.waitForTransform(self.odom_frame_id, self.base_frame_id, now, rospy.Duration(4.0))
+                    # trans,rot = self.listener.lookupTransform(self.odom_frame_id,self.base_frame_id, now)
+                    self.listener.waitForTransform(self.frame_id, self.base_frame_id, now, rospy.Duration(4.0))
+                    trans,rot = self.listener.lookupTransform(self.frame_id, self.base_frame_id, now)
                     distance = math.sqrt(pow(waypoint.pose.pose.position.x-trans[0],2)+pow(waypoint.pose.pose.position.y-trans[1],2))
         return 'success'
 
@@ -105,6 +107,11 @@ class GetPath(State):
         # Create publsher to publish waypoints as pose array so that you can see them in rviz, etc.
         self.posearray_topic = rospy.get_param('~posearray_topic','/waypoints')
         self.poseArray_publisher = rospy.Publisher(self.posearray_topic, PoseArray, queue_size=1)
+
+        self.output_file = rospy.get_param('~waypoint_file','default')
+        self.output_file_path = '/'.join(output_file_path.split('/')[:-1] + [self.output_file + '.csv'])
+        print(self.output_file_path)
+        rospy.loginfo(self.output_file_path)
 
         # Start thread to listen for reset messages to clear the waypoint queue
         def wait_for_path_reset():
@@ -138,10 +145,10 @@ class GetPath(State):
             data = rospy.wait_for_message('/path_ready', Empty)
             rospy.loginfo('Recieved path READY message')
             self.path_ready = True
-            with open(output_file_path, 'w') as file:
+            with open(self.output_file_path, 'w') as file:
                 for current_pose in waypoints:
                     file.write(str(current_pose.pose.pose.position.x) + ',' + str(current_pose.pose.pose.position.y) + ',' + str(current_pose.pose.pose.position.z) + ',' + str(current_pose.pose.pose.orientation.x) + ',' + str(current_pose.pose.pose.orientation.y) + ',' + str(current_pose.pose.pose.orientation.z) + ',' + str(current_pose.pose.pose.orientation.w)+ '\n')
-            rospy.loginfo('poses written to '+ output_file_path)	
+            rospy.loginfo('poses written to '+ self.output_file_path)	
         ready_thread = threading.Thread(target=wait_for_path_ready)
         ready_thread.start()
 
@@ -153,7 +160,7 @@ class GetPath(State):
             """thread worker function"""
             data_from_start_journey = rospy.wait_for_message('start_journey', Empty)
             rospy.loginfo('Recieved path READY start_journey')
-            with open(output_file_path, 'r') as file:
+            with open(self.output_file_path, 'r') as file:
                 reader = csv.reader(file, delimiter = ',')
                 for row in reader:
                     print (row)
@@ -173,7 +180,7 @@ class GetPath(State):
         start_journey_thread = threading.Thread(target=wait_for_start_journey)
         start_journey_thread.start()
 
-        topic = self.addpose_topic;
+        topic = self.addpose_topic
         rospy.loginfo("Waiting to recieve waypoints via Pose msg on topic %s" % topic)
         rospy.loginfo("To start following waypoints: 'rostopic pub /path_ready std_msgs/Empty -1'")
         rospy.loginfo("OR")
@@ -183,13 +190,13 @@ class GetPath(State):
         # Wait for published waypoints or saved path  loaded
         while (not self.path_ready and not self.start_journey_bool):
             try:
-                pose = rospy.wait_for_message(topic, PoseWithCovarianceStamped, timeout=1)
+                pose = rospy.wait_for_message(topic, PoseWithCovarianceStamped, timeout=10)
             except rospy.ROSException as e:
                 if 'timeout exceeded' in e.message:
                     continue  # no new waypoint within timeout, looping...
                 else:
                     raise e
-            rospy.loginfo("Recieved new waypoint")
+            rospy.loginfo("######## Recieved new waypoint")
             waypoints.append(changePose(pose, "map"))
             # publish waypoint queue as pose array so that you can see them in rviz, etc.
             self.poseArray_publisher.publish(convert_PoseWithCovArray_to_PoseArray(waypoints))
