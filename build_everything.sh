@@ -31,3 +31,11 @@ echo "| Step 4:    Check the custom bridged msg     |"
 echo "0---------------------------------------------0"
 
 ./run_inference.sh -c "./check_custom_bridge_msgs.sh"
+
+echo ""
+echo ""
+echo "0---------------------------------------------0"
+echo "| Step 5:      Compile deep c++ wrappers      |"
+echo "0---------------------------------------------0"
+
+./run_inference.sh -c "./compile_wrappers.sh"
