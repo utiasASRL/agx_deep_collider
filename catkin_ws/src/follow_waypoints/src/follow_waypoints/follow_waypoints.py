@@ -58,6 +58,7 @@ class FollowPath(State):
         self.tf = TransformListener()
         self.listener = tf.TransformListener()
         self.distance_tolerance = rospy.get_param('~waypoint_distance_tolerance', 1.0)
+        rospy.loginfo("######## Recieved distance_tolerance : {:.3f}".format(self.distance_tolerance))
 
     def execute(self, userdata):
         global waypoints
