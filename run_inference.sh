@@ -63,7 +63,8 @@ other_args="-v $XSOCK:$XSOCK \
     --privileged \
 	-e XAUTHORITY=${XAUTH} \
     -e DISPLAY=$DISPLAY \
-    -e ROS_MASTER_URI=http://cpr-tor59-01:11311 \
+    -e ROS_HOSTNAME=cpr-tor59-xav02 \
+    -e ROS_MASTER_URI=http://cpr-tor59-02:11311 \
     -w=/home/$USER/eloquent_ws/scripts"
 
 
