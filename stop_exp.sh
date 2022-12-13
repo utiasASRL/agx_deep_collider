@@ -3,7 +3,7 @@
 
 # Global source
 source "/opt/ros/noetic/setup.bash"
-export ROS_HOSTNAME=polus-laptop
+export ROS_HOSTNAME=cpr-tor59-xav02
 export ROS_MASTER_URI=http://cpr-tor59-02:11311
 
 # local ws source

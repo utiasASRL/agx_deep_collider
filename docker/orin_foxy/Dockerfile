@@ -105,12 +105,10 @@ RUN sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main"
 RUN curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | apt-key add -
 RUN apt-get update 
 
-# RUN apt-get install ros-noetic-ros-base -y --no-install-recommends
-# RUN apt-get install ros-noetic-tf2* -y --no-install-recommends
+# Fix error with opencv
+RUN apt-get purge -y '*opencv*'
 
-#
 # install bootstrap dependencies
-#
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
           libpython3-dev \
@@ -126,10 +124,29 @@ ENV ROS_DISTRO=noetic
 ENV ROS_ROOT=/opt/ros/noetic
 ENV ROS_PYTHON_VERSION=3
 
-
 RUN apt-get install ros-noetic-ros-base -y --no-install-recommends
 RUN apt-get install ros-noetic-tf2* -y --no-install-recommends
 
+# REinstall CMake latest version from kitware
+RUN apt-get update && \
+	apt-get install -y software-properties-common lsb-release
+	
+RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null
+RUN apt-add-repository "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main"
+
+RUN apt-get update
+RUN apt-get install -y --no-install-recommends --upgrade cmake
+
+# Add other packages to noetic
+RUN apt-get install ros-noetic-costmap-converter -y --no-install-recommends
+RUN apt-get install ros-noetic-jackal* -y --no-install-recommends
+RUN apt-get install ros-noetic-move-base-flex -y --no-install-recommends
+RUN apt-get install libsuitesparse-dev -y --no-install-recommends
+RUN apt-get install ros-noetic-libg2o -y --no-install-recommends
+RUN apt-get install ros-noetic-ros-numpy -y --no-install-recommends
+RUN apt-get install ros-noetic-navigation -y --no-install-recommends
+RUN pip3 install  catkin_tools
+RUN apt-get install ros-noetic-geodesy -y --no-install-recommends
 
 # #
 # # download/build the ROS source
@@ -177,7 +194,9 @@ RUN apt update && sudo apt install curl gnupg2 lsb-release
 RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
 RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
 RUN apt-get update
-RUN apt-get upgrade -y --no-install-recommends
+# RUN apt-get upgrade -y --no-install-recommends
+RUN apt-mark hold libopencv
+RUN apt-mark hold libopencv-dev
 
 RUN apt-get install ros-foxy-ros-base -y --no-install-recommends
 
@@ -210,15 +229,6 @@ RUN  pip3 install argcomplete \
 # #
 # ENV RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 
-# REinstall CMake latest version from kitware
-RUN apt-get update && \
-	apt-get install -y software-properties-common lsb-release
-	
-RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null
-RUN apt-add-repository "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main"
-
-RUN apt-get update
-RUN apt-get install -y --no-install-recommends --upgrade cmake
 
 #
 ###############
@@ -233,24 +243,14 @@ ENV TERM xterm-256color
 RUN sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
 RUN curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | apt-key add -
 RUN apt-get update
-# RUN apt-get install ros-noetic-jackal* -y --no-install-recommends
-RUN apt-get install ros-noetic-move-base-flex -y --no-install-recommends
-RUN apt-get install libsuitesparse-dev -y --no-install-recommends
-RUN apt-get install ros-noetic-libg2o -y --no-install-recommends
-RUN apt-get install ros-noetic-ros-numpy -y --no-install-recommends
-RUN apt-get install ros-noetic-navigation -y --no-install-recommends
-
-RUN apt-get update
-# RUN apt-get install ros-noetic-jsk-rviz-plugins -y --no-install-recommends
-
-RUN pip3 install  catkin_tools
-RUN apt-get install ros-noetic-geodesy -y --no-install-recommends
-# RUN apt-get install ros-noetic-costmap-converter -y --no-install-recommends
+RUN apt-get install ros-noetic-pcl-ros -y --no-install-recommends
+RUN apt-get install ros-noetic-tf-conversions -y --no-install-recommends
+RUN apt-get install ros-noetic-smach -y --no-install-recommends
 
 
+RUN pip3 install --upgrade matplotlib
 
 #----------------------------------------------------------------------------------------------------------------------------------------------------
-
 
 #
 # User info
@@ -273,7 +273,9 @@ RUN echo $username0':rosie' | chpasswd
 WORKDIR /home/$username0/eloquent_ws
 RUN chown -R $username0:$username0 /home/$username0
 
-# USER $username0  
+RUN usermod -a -G video $username0
+
+USER $username0  
 
 # Set xterm defaults
 WORKDIR /home/$username0

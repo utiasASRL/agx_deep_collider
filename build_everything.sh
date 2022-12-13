@@ -24,6 +24,28 @@ echo "0---------------------------------------------0"
 
 ./run_inference.sh -c "./build_ros1_bridge.sh"
 
+
+
+####################################################################################################################
+
+
+#                                                       HERE                                                       #
+
+# OK we should be here
+# Verify output of ros1bridge compilation
+# Then Compile the reste 
+# Then test robot without laptop
+# (note ssh command to start velodyne should work even from the same computer!)
+
+
+####################################################################################################################
+
+
+
+
+
+
+
 echo ""
 echo ""
 echo "0---------------------------------------------0"
